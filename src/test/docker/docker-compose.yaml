@@ -1,0 +1,43 @@
+version: '3.5'
+
+services:
+  postgres:
+    container_name: postgres_container
+    image: postgres:13.6
+    environment:
+      POSTGRESQL_MAX_IDLE_CONNS: "150"
+      POSTGRESQL_MAX_OPEN_CONNS: "3000"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /dbs/postgres
+    volumes:
+      - postgres:/dbs/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres
+    restart: unless-stopped
+    command: ["postgres", "-c", "log_statement=all"]
+#
+#  pgadmin:
+#    container_name: pgadmin4
+#    image: dpage/pgadmin4
+#    restart: always
+#    environment:
+#      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+#      PGADMIN_DEFAULT_PASSWORD: password
+#    ports:
+#      - "5050:80"
+#    volumes:
+#      - pgadmin:/root/.pgadmin
+#    networks:
+#      - postgres
+
+
+volumes:
+  postgres:
+  pgadmin:
+  app:
+networks:
+  postgres:
+    driver: bridge

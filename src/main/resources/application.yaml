@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    driverClassName: "org.postgresql.Driver"
+    url: "jdbc:postgresql://127.0.0.0:5432/local"
+    username: postgres
+    password: postgres
+  r2dbc:
+    url: "r2dbc:postgresql://127.0.0.0:5432/local?schema=public"
+    username: postgres
+    password: postgres
+  flyway:
+    url: "jdbc:postgresql://127.0.0.0:5432/local"
+    user: postgres
+    password: postgres
+    table: schema_history
+    clean-disabled: false
+    enabled: true
+    validate-on-migrate: true
+    baseline-on-migrate: true
+    baseline-version: 0
+logging:
+  level:
+    org:
+      flywaydb=DEBUG:
