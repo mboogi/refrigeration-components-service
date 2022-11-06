@@ -56,39 +56,27 @@ class PolynomialEvaluationService(
 
     private fun evaluate(input: EvaluationInput): Mono<EvalResult> {
         val evalResult = EvalResult(EvalResultInfo.FAILURE, input, mapOf(), mapOf(), "")
+
         val refrigerantErrorMsg = "refrigerant could not be found"
-        val refrigerant = input.anyInputs[ComponentsConfig.refrigerantKey] as? String ?: return Mono.just(
-            errorEvalResult(refrigerantErrorMsg, input)
-        )
+        val refrigerant = getRefrigerant(input) ?: return getMonoError(refrigerantErrorMsg, input)
 
         val evapTempErrorMsg = "evap temp could not be found"
-        val evapTemp = input.anyInputs[ComponentsConfig.evapTempKey] as? Double
-            ?: return Mono.just(errorEvalResult(evapTempErrorMsg, input))
+        val evapTemp = getEvaporationTemperature(input) ?: return getMonoError(evapTempErrorMsg, input)
 
         val condTempErrorMsg = "cond temp could not be found"
-        val condensingTemp = input.anyInputs[ComponentsConfig.condTempKey] as? Double ?: return return Mono.just(
-            errorEvalResult(condTempErrorMsg, input)
-        )
+        val condensingTemp = getCondensingTemperature(input) ?: return getMonoError(condTempErrorMsg, input)
 
         val capacityErrorMsg = "capacity could not be found"
-        val capacity = input.anyInputs[ComponentsConfig.capacity] as? Double ?: return return Mono.just(
-            errorEvalResult(capacityErrorMsg, input)
-        )
+        val capacity = getCapacity(input) ?: return getMonoError(capacityErrorMsg, input)
 
         val frequencyErrorMsg = "frequency could not be found"
-        val frequency = input.anyInputs[ComponentsConfig.frequency] as? Double ?: return return Mono.just(
-            errorEvalResult(frequencyErrorMsg, input)
-        )
+        val frequency = getFrequency(input) ?: return getMonoError(frequencyErrorMsg, input)
 
         val transCriticalErrorMsg = "transcricital operation type could not be found"
-        val transCritical =
-            input.anyInputs[ComponentsConfig.transCritical] as? Boolean
-                ?: return return Mono.just(errorEvalResult(transCriticalErrorMsg, input))
+        val transCritical = getTransCritical(input) ?: return getMonoError(transCriticalErrorMsg, input)
 
         val compressorTypeErrorMsg = "compressor type could not be found"
-        val compressorType = input.anyInputs[ComponentsConfig.compressorType] as? String ?: return return Mono.just(
-            errorEvalResult(compressorTypeErrorMsg, input)
-        )
+        val compressorType = getCompressorType(input) ?: return getMonoError(compressorTypeErrorMsg, input)
 
         val polynomialGroup =
             service.getPolynomialGroups(compressorType, refrigerant, capacity, frequency, transCritical, purposeName)

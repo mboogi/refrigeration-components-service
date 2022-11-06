@@ -13,5 +13,8 @@ class ComponentsConfig {
         val transCritical = "transCritical"
         val compressorType = "compressorType"
         val polynomialEvaluationValue = "evalValue"
+        val superheat = "superheat"
+        val subcool = "subcool"
+        val duration = 3L
     }
 }
