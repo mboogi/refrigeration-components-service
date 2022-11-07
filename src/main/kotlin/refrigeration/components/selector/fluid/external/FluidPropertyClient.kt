@@ -19,6 +19,7 @@ class FluidPropertyClient : FluidPropertiesApi {
             .accept(MediaType.APPLICATION_JSON)
             .retrieve()
             .bodyToFlux(String::class.java)
+            .onErrorResume { Flux.empty() }
     }
 
     override fun getNumericProperty(request: FluidPropertyRequest): Mono<Double> {
@@ -36,6 +37,7 @@ class FluidPropertyClient : FluidPropertiesApi {
             .accept(MediaType.APPLICATION_JSON)
             .retrieve()
             .bodyToMono<Double>()
+            .onErrorComplete()
         return result
     }
 

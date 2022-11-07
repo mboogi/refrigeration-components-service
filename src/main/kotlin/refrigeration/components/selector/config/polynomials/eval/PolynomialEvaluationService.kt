@@ -105,7 +105,7 @@ class PolynomialEvaluationService(
             .findPolynomialMappingByIdIn(ids.toList())
             .publishOn(Schedulers.boundedElastic())
             .collectList()
-            .block() ?: return Mono.just(evalResult)
+            .toFuture().get() ?: return Mono.just(evalResult)
         logger.info("polynomial coefficients $mappings")
 
         val firstResult = calculate(first, mappings, evapTemp, condensingTemp)
