@@ -37,7 +37,6 @@ class FluidPropertyClient : FluidPropertiesApi {
             .accept(MediaType.APPLICATION_JSON)
             .retrieve()
             .bodyToMono<Double>()
-            .onErrorComplete()
         return result
     }
 

@@ -42,6 +42,9 @@ dependencies {
 
     implementation("io.springfox:springfox-swagger2:3.0.0")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.0-rc3")
+
+    compileOnly("org.springframework.metrics:spring-metrics:latest.release")
+    compileOnly("io.prometheus:simpleclient_common:latest.release")
 }
 
 tasks.withType<KotlinCompile> {
@@ -58,7 +61,7 @@ tasks.jacocoTestReport {
     }
     finalizedBy("jacocoTestCoverageVerification")
 }
-//tasks.jacocoTestCoverageVerification {
+// tasks.jacocoTestCoverageVerification {
 //    violationRules {
 //        rule {
 //            limit {
@@ -91,7 +94,7 @@ tasks.jacocoTestReport {
 //            )
 //        }
 //    }
-//}
+// }
 tasks.withType<Test> {
     jacoco {
         toolVersion = "0.8.8"

@@ -14,12 +14,16 @@ import refrigeration.components.selector.config.polynomials.search.PolynomialCoe
 import refrigeration.components.selector.config.polynomials.search.PolynomialSearchService
 import refrigeration.components.selector.util.*
 import java.math.BigDecimal
+import java.util.concurrent.TimeUnit
 
 class PolynomialEvaluationService(
     private val purposeName: String,
     private val service: PolynomialSearchService,
     private val coefficientsService: PolynomialCoefficientsService
 ) {
+    private val timeOutValue = 500L
+    private val timeOutUnit = TimeUnit.MILLISECONDS
+
     companion object {
         private val logger = LoggerFactory.getLogger(PolynomialCoefficientsService::class.java)
     }
@@ -104,8 +108,10 @@ class PolynomialEvaluationService(
         val mappings = coefficientsService
             .findPolynomialMappingByIdIn(ids.toList())
             .publishOn(Schedulers.boundedElastic())
+            .cache()
             .collectList()
-            .toFuture().get() ?: return Mono.just(evalResult)
+            .toFuture()
+            .get(timeOutValue, timeOutUnit) ?: return Mono.just(evalResult)
         logger.info("polynomial coefficients $mappings")
 
         val firstResult = calculate(first, mappings, evapTemp, condensingTemp)

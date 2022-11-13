@@ -1,8 +1,11 @@
 package refrigeration.components.selector.cycles
 
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.publisher.toFlux
 import refrigeration.components.selector.ComponentsConfig
 import refrigeration.components.selector.api.EvalResult
 import refrigeration.components.selector.api.EvalResultInfo
@@ -24,6 +27,13 @@ class CompressorEvaluation(
     private val fluidsService: FluidPropertyService,
     private val pool: CyclesThreadPool
 ) : Evaluator {
+    companion object {
+        val logger = LoggerFactory.getLogger(CompressorEvaluation::class.java)
+    }
+
+    private val timeOutValue = 500L
+    private val timeOutUnit = TimeUnit.MILLISECONDS
+
     private val duration = ComponentsConfig.duration
 
     private val massFlowPolynomialEval =
@@ -63,6 +73,7 @@ class CompressorEvaluation(
     }
 
     override fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
+        // TODO remove gets with something more resilient, implement on error, onErrorComplete should be replaced
         val tmp = input[0]
         val evapTemp = getEvaporationTemperature(tmp) ?: return Flux.empty()
         val condensingTemperature = getCondensingTemperature(tmp) ?: return Flux.empty()
@@ -75,41 +86,93 @@ class CompressorEvaluation(
         val electricPower =
             electricPowerPolynomialEval.evaluate(listOf(tmp)).next()
 
-        val inletTemperature = evapTemp + superHeat
-        // if (1==1)return Flux.empty()
+        val inletTemperature = evapTemp + superHeat + 273.15
+
         val evaporationPressure =
-            fluidsService.getDryVapourPressure(evapTemp + 273.15, refrigerant)
-                .publishOn(Schedulers.fromExecutor(pool))
-                .toFuture()
-        val error = evaporationPressure.isCompletedExceptionally
-        if (error) return Flux.error(RuntimeException("error happened when fetching evap pressure"))
-        val evapPressure = evaporationPressure.get(100, TimeUnit.MILLISECONDS) ?: return Flux.empty()
+            fluidsService.getDryVapourPressure(inletTemperature, refrigerant)
 
-        evaporationPressure ?: return Flux.error(RuntimeException("fuckoff"))
+        val condensingPressure =
+            fluidsService.getDryVapourPressure(condensingTemperature + 273.15, refrigerant)
 
-        val condensingPressure = fluidsService.getDryVapourPressure(condensingTemperature, refrigerant)
-        val enthalpyAtInlet = fluidsService.getSuperHeatedVapourEnthalpy(evapTemp + 273.15, evapPressure, refrigerant)
-        val densityAtInlet = fluidsService.getSuperHeatedVapourDensity(evapTemp + 273.15, evapPressure, refrigerant)
+        val enthalpyAtInlet = evaporationPressure
+            .flatMap {
+                fluidsService
+                    .getSuperHeatedVapourEnthalpy(evapTemp + 273.15, it, refrigerant)
+            }
 
-        val inletData = Flux.zip(condensingPressure, enthalpyAtInlet, densityAtInlet).map { t ->
+        val densityAtInlet = evaporationPressure
+            .flatMap { fluidsService.getSuperHeatedVapourDensity(evapTemp + 273.15, it, refrigerant) }
+
+        val polynomialEvaluation = evaluatePolynomials(massFlow, electricPower)
+
+        val massFlowEval = polynomialEvaluation[ComponentsConfig.massFlowKey] ?: return Flux.empty()
+        val massFlowResult =
+            massFlowEval.result[ComponentsConfig.polynomialEvaluationValue] as? Double ?: return Flux.empty()
+
+        val volumetricFlow = densityAtInlet.map { massFlowResult.div(it) }
+
+        val electricPowerResult = polynomialEvaluation[ComponentsConfig.electricPowerKey] ?: return Flux.empty()
+        val electricPowerValue =
+            electricPowerResult.result[ComponentsConfig.polynomialEvaluationValue] as? Double ?: return Flux.empty()
+
+        return volumetricFlow.flatMap { getEvalResult(it, massFlowResult, electricPowerValue, input[0]) }.toFlux()
+    }
+    private fun getEvalResult(
+        volumetricFlow: Double,
+        massFlowResult: Double,
+        electricPowerValue: Double,
+        input: EvaluationInput
+    ): Mono<EvalResult> {
+        val result = EvalResult(
+            EvalResultInfo.SUCCESS,
+            input,
+            mapOf(
+                "volumetricFlow" to volumetricFlow,
+                "massFlow" to massFlowResult,
+                "electricPower" to electricPowerValue
+            ),
+            mapOf(),
+            "tempadkasdjas"
+        )
+        return Mono.just(result)
+    }
+
+    private fun fetchInletData(
+        condensingPressure: Mono<Double>,
+        enthalpyAtInlet: Mono<Double>,
+        densityAtInlet: Mono<Double>
+    ): Mono<Map<String, Double>> {
+        return Mono.zip(condensingPressure, enthalpyAtInlet, densityAtInlet).map { t ->
             val condensingPressure = Pair(ComponentsConfig.condensingPressureKey, t.t1)
             val enthalpyAtInlet = Pair(ComponentsConfig.enthalpyAtInletKey, t.t2)
             val densityAtInlet = Pair(ComponentsConfig.densityAtInletKey, t.t3)
-            mutableMapOf(condensingPressure, enthalpyAtInlet, densityAtInlet)
-        }.next().publishOn(Schedulers.fromExecutor(pool)).toFuture().get() ?: return Flux.empty()
+            mapOf(condensingPressure, enthalpyAtInlet, densityAtInlet)
+        }
+    }
 
-        val polynomialEvaluation = Flux.zip(massFlow, electricPower).map { t ->
+    private fun evaluatePolynomials(
+        massFlow: Mono<EvalResult>,
+        electricPower: Mono<EvalResult>
+    ): Map<String, EvalResult> {
+        return Mono.zip(massFlow, electricPower).map { t ->
             val massFlow = Pair(ComponentsConfig.massFlowKey, t.t1)
             val electricPower = Pair(ComponentsConfig.electricPowerKey, t.t2)
             mutableMapOf(massFlow, electricPower)
-        }.next().publishOn(Schedulers.fromExecutor(pool)).toFuture().get() ?: return Flux.empty()
-
-        val massFlowEval = polynomialEvaluation.get(ComponentsConfig.massFlowKey) ?: return Flux.empty()
-        val massFlowResult =
-            massFlowEval.result.get(ComponentsConfig.polynomialEvaluationValue) as? Double ?: return Flux.empty()
-        val density = inletData[ComponentsConfig.densityAtInletKey] ?: return Flux.empty()
-        val volumetricFlow = massFlowResult / density
-        val evalResult = EvalResult(EvalResultInfo.SUCCESS, input[0], mapOf("volumetricFlow" to volumetricFlow), mapOf(), "tempadkasdjas")
-        return Flux.just(evalResult)
+        }
+            .onErrorComplete()
+            .publishOn(Schedulers.fromExecutor(pool))
+            .toFuture()
+            .join()
+            ?: return mapOf()
+    }
+    private fun evaluatePolynomialsMono(
+        massFlow: Mono<EvalResult>,
+        electricPower: Mono<EvalResult>
+    ): Mono<Map<String, EvalResult>> {
+        return Mono.zip(massFlow, electricPower).map { t ->
+            val massFlow = Pair(ComponentsConfig.massFlowKey, t.t1)
+            val electricPower = Pair(ComponentsConfig.electricPowerKey, t.t2)
+            mapOf(massFlow, electricPower)
+        }
     }
 }
