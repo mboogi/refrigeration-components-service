@@ -6,6 +6,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toFlux
 import refrigeration.components.selector.fluid.api.FluidPropertiesApi
 import refrigeration.components.selector.fluid.api.FluidPropertyRequest
 
@@ -41,6 +42,7 @@ class FluidPropertyClient : FluidPropertiesApi {
     }
 
     override fun getNumericProperties(request: List<FluidPropertyRequest>): Flux<Double> {
-        TODO("Not yet implemented")
+        val result= request.map { getNumericProperty(it) }
+        return Flux.concat(result)
     }
 }

@@ -8,7 +8,6 @@ import refrigeration.components.selector.pools.CyclesThreadPool
 import refrigeration.components.selector.util.eq
 import refrigeration.components.selector.util.gte
 import refrigeration.components.selector.util.lte
-import java.util.concurrent.TimeUnit
 
 @Service
 class PolynomialSearchService(private val service: PolynomialCoefficientsService, private val pool: CyclesThreadPool) {
@@ -16,8 +15,6 @@ class PolynomialSearchService(private val service: PolynomialCoefficientsService
     private val lowCapHighFreqGroupName = "lowCapacityHighFrequencyGroup"
     private val highCapLowFreGroupName = "highCapacityLowFrequencyGroup"
     private val highCapHighFreqGroupName = "highCapacityHighFrequencyGroup"
-    private val timeOutValue = 500L
-    private val timeOutUnit = TimeUnit.MILLISECONDS
 
     companion object {
         private val logger = LoggerFactory.getLogger(PolynomialSearchService::class.java)

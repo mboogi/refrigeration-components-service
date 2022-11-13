@@ -18,7 +18,6 @@ import refrigeration.components.selector.config.polynomials.search.PolynomialSea
 import refrigeration.components.selector.fluid.FluidPropertyService
 import refrigeration.components.selector.pools.CyclesThreadPool
 import refrigeration.components.selector.util.*
-import java.util.concurrent.TimeUnit
 
 @Service
 class CompressorEvaluation(
@@ -30,9 +29,6 @@ class CompressorEvaluation(
     companion object {
         val logger = LoggerFactory.getLogger(CompressorEvaluation::class.java)
     }
-
-    private val timeOutValue = 500L
-    private val timeOutUnit = TimeUnit.MILLISECONDS
 
     private val duration = ComponentsConfig.duration
 
@@ -74,17 +70,28 @@ class CompressorEvaluation(
 
     override fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
         // TODO remove gets with something more resilient, implement on error, onErrorComplete should be replaced
-        val tmp = input[0]
-        val evapTemp = getEvaporationTemperature(tmp) ?: return Flux.empty()
-        val condensingTemperature = getCondensingTemperature(tmp) ?: return Flux.empty()
-        val subCool = getSubCool(tmp) ?: return Flux.empty()
-        val superHeat = getSuperHeat(tmp) ?: return Flux.empty()
-        val refrigerant = getRefrigerant(tmp) ?: return Flux.empty()
+        val result = initialEvaluation(input[0])
+        val superHeat = getSuperHeat(input[0]) ?: return Flux.empty()
+        val subCool = getSubCool(input[0]) ?: return Flux.empty()
+        if ((superHeat < 0.0) or (subCool < 0.0)) return Flux.empty()
+        if (superHeat == 20.0) return result
+        // do it for other superheat
+        return Flux.empty()
+    }
+
+    private fun evaluate(initalEval: Flux<EvalResult>, input: EvaluationInput) {
+    }
+
+    private fun initialEvaluation(input: EvaluationInput): Flux<EvalResult> {
+        val evapTemp = getEvaporationTemperature(input) ?: return Flux.empty()
+        val condensingTemperature = getCondensingTemperature(input) ?: return Flux.empty()
+        val superHeat = 20.0
+        val refrigerant = getRefrigerant(input) ?: return Flux.empty()
 
         val massFlow =
-            massFlowPolynomialEval.evaluate(listOf(tmp)).next()
+            massFlowPolynomialEval.evaluate(listOf(input)).next()
         val electricPower =
-            electricPowerPolynomialEval.evaluate(listOf(tmp)).next()
+            electricPowerPolynomialEval.evaluate(listOf(input)).next()
 
         val inletTemperature = evapTemp + superHeat + 273.15
 
@@ -114,9 +121,11 @@ class CompressorEvaluation(
         val electricPowerResult = polynomialEvaluation[ComponentsConfig.electricPowerKey] ?: return Flux.empty()
         val electricPowerValue =
             electricPowerResult.result[ComponentsConfig.polynomialEvaluationValue] as? Double ?: return Flux.empty()
+        val evalResult = volumetricFlow.flatMap { getEvalResult(it, massFlowResult, electricPowerValue, input) }
 
-        return volumetricFlow.flatMap { getEvalResult(it, massFlowResult, electricPowerValue, input[0]) }.toFlux()
+        return evalResult.toFlux()
     }
+
     private fun getEvalResult(
         volumetricFlow: Double,
         massFlowResult: Double,
@@ -138,11 +147,11 @@ class CompressorEvaluation(
     }
 
     private fun fetchInletData(
-        condensingPressure: Mono<Double>,
+        evaporationPressure: Mono<Double>,
         enthalpyAtInlet: Mono<Double>,
         densityAtInlet: Mono<Double>
     ): Mono<Map<String, Double>> {
-        return Mono.zip(condensingPressure, enthalpyAtInlet, densityAtInlet).map { t ->
+        return Mono.zip(evaporationPressure, enthalpyAtInlet, densityAtInlet).map { t ->
             val condensingPressure = Pair(ComponentsConfig.condensingPressureKey, t.t1)
             val enthalpyAtInlet = Pair(ComponentsConfig.enthalpyAtInletKey, t.t2)
             val densityAtInlet = Pair(ComponentsConfig.densityAtInletKey, t.t3)
@@ -165,6 +174,7 @@ class CompressorEvaluation(
             .join()
             ?: return mapOf()
     }
+
     private fun evaluatePolynomialsMono(
         massFlow: Mono<EvalResult>,
         electricPower: Mono<EvalResult>
