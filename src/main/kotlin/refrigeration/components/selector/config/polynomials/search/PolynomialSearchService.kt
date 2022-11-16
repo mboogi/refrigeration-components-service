@@ -6,13 +6,13 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toMono
 import refrigeration.components.selector.config.polynomials.db.PolynomialSearchResult
-import refrigeration.components.selector.pools.CyclesThreadPool
+import refrigeration.components.selector.pools.WorkerPool
 import refrigeration.components.selector.util.eq
 import refrigeration.components.selector.util.gte
 import refrigeration.components.selector.util.lte
 
 @Service
-class PolynomialSearchService(private val service: PolynomialCoefficientsService, private val pool: CyclesThreadPool) {
+class PolynomialSearchService(private val service: PolynomialCoefficientsService, private val pool: WorkerPool) {
     private val lowCapLowFreqGroupName = "lowCapacityLowFrequencyGroup"
     private val lowCapHighFreqGroupName = "lowCapacityHighFrequencyGroup"
     private val highCapLowFreGroupName = "highCapacityLowFrequencyGroup"
@@ -53,6 +53,7 @@ class PolynomialSearchService(private val service: PolynomialCoefficientsService
                     transCritical,
                     polynomialType
                 )
+                .cache()
                 .subscribeOn(Schedulers.fromExecutor(pool), false)
                 .collectList()
                 .toMono()

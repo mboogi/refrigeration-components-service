@@ -16,11 +16,12 @@ class ComponentsConfig {
         val superheat = "superheat"
         val subcool = "subcool"
         val duration = 3L
-        val condensingPressureKey="condensingPressure"
-        val evaporationPressureKey="evaporationPressure"
-        val enthalpyAtInletKey="enthalpyAtInlet"
-        val densityAtInletKey="enthalpyAtInlet"
-        val massFlowKey="massFlow"
-        val electricPowerKey="electricPower"
+        val criticalPointR744 = 80.0
+        val condensingPressureKey = "condensingPressure"
+        val evaporationPressureKey = "evaporationPressure"
+        val enthalpyAtInletKey = "enthalpyAtInlet"
+        val densityAtInletKey = "enthalpyAtInlet"
+        val massFlowKey = "massFlow"
+        val electricPowerKey = "electricPower"
     }
 }

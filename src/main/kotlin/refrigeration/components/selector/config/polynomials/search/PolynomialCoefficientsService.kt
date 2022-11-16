@@ -8,6 +8,7 @@ import reactor.core.scheduler.Schedulers
 import refrigeration.components.selector.DefaultSubscriber
 import refrigeration.components.selector.api.polynomials.PolynomialCoefficientRequest
 import refrigeration.components.selector.config.polynomials.db.*
+import refrigeration.components.selector.pools.WorkerPool
 import refrigeration.components.selector.util.*
 
 @Service
@@ -19,7 +20,8 @@ class PolynomialCoefficientsService(
     private val frequencyRepository: FrequencyPolynomialMappingRepository,
     private val polynomialSearchResult: PolynomialSearchResultRepository,
     private val polynomialTypeRepository: PolynomialTypeRepository,
-    private val repo: PolynomialCoefficientsRepository
+    private val repo: PolynomialCoefficientsRepository,
+    private val pool: WorkerPool
 ) {
 
     companion object {
@@ -36,12 +38,17 @@ class PolynomialCoefficientsService(
         transCritical: Boolean,
         polynomialType: String
     ): Flux<PolynomialSearchResult> {
-        return polynomialSearchResult.findByCompressorTypeAndRefrigerantTypeAndTransCriticalAndPolynomialType(
+        val start = System.currentTimeMillis()
+        val result = polynomialSearchResult.findByCompressorTypeAndRefrigerantTypeAndTransCriticalAndPolynomialType(
             compressor,
             refrigerant,
             transCritical,
             polynomialType
         )
+            .subscribeOn(Schedulers.fromExecutor(pool))
+        val end = System.currentTimeMillis()
+        logger.info("search duration ${(end - start)}")
+        return result
     }
 
     fun findPolynomialMappingByID(id: Long): Mono<PolynomialCoefficientsEntity> {
