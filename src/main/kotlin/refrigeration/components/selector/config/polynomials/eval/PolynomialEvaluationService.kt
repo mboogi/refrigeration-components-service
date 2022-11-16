@@ -1,9 +1,10 @@
 package refrigeration.components.selector.config.polynomials.eval
 
+
 import org.slf4j.LoggerFactory
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
+import reactor.core.publisher.toMono
 import refrigeration.components.selector.ComponentsConfig
 import refrigeration.components.selector.api.EvalResult
 import refrigeration.components.selector.api.EvalResultInfo
@@ -11,10 +12,12 @@ import refrigeration.components.selector.api.EvaluationInput
 import refrigeration.components.selector.config.polynomials.db.PolynomialCoefficientsEntity
 import refrigeration.components.selector.config.polynomials.db.PolynomialSearchResult
 import refrigeration.components.selector.config.polynomials.search.PolynomialCoefficientsService
+import refrigeration.components.selector.config.polynomials.search.PolynomialGroups
 import refrigeration.components.selector.config.polynomials.search.PolynomialSearchService
 import refrigeration.components.selector.util.*
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
+import kotlin.reflect.KClass
 
 class PolynomialEvaluationService(
     private val purposeName: String,
@@ -85,12 +88,92 @@ class PolynomialEvaluationService(
         val polynomialGroup =
             service.getPolynomialGroups(compressorType, refrigerant, capacity, frequency, transCritical, purposeName)
         logger.info("polynomial group: $polynomialGroup")
-        if (polynomialGroup.isEmpty) return return return Mono.just(
-            errorEvalResult(
-                "polynomials could not be found",
-                input
-            )
-        )
+
+// cache this thing
+
+        val mappings = polynomialGroup
+            .map { ids(it) }
+            .flatMap {
+                coefficientsService.findPolynomialMappingByIdIn(it.polynomialIds)
+                    .collectList()
+                    .toMono()
+                    .map { et -> Pair(it, et) }
+            }
+        logger.info("polynomial coefficients $mappings")
+
+        val firstResult = mappings.flatMap { evaluateMono(it.first.first, it.second, evapTemp, condensingTemp) }
+        val secondResult = mappings.flatMap { evaluateMono(it.first.second, it.second, evapTemp, condensingTemp) }
+        val thirdResult = mappings.flatMap { evaluateMono(it.first.third, it.second, evapTemp, condensingTemp) }
+        val fourthResult = mappings.flatMap { evaluateMono(it.first.fourth, it.second, evapTemp, condensingTemp) }
+
+        val capacityFrequencyGroup = polynomialGroup
+            .flatMap {
+                val lowCapacity = getBigDecimalFromNullable(it.lowCapacity)
+                val highCapacity = getBigDecimalFromNullable(it.highCapacity)
+                val lowFrequency = getBigDecimalFromNullable(it.lowFrequency)
+                val highFrequency = getBigDecimalFromNullable(it.highFrequency)
+                Mono.just(CapacityFrequencyGroup(lowCapacity, highCapacity, lowFrequency, highFrequency))
+            }
+
+        val capacityScaled = getBigDecimalFromNullable(capacity)
+        val frequencyScaled = getBigDecimalFromNullable(frequency)
+
+        val result = Mono
+            .zip(firstResult, secondResult, thirdResult, fourthResult, capacityFrequencyGroup)
+            .flatMap { t ->
+                val firstResult = t.t1
+                val secondResult = t.t2
+                val thirdResult = t.t3
+                val fourthResult = t.t4
+                val capFreqGroup = t.t5
+
+                val lowFrequencyInterpolation =
+                    interpolation.linearInterpolation(
+                        firstResult,
+                        capFreqGroup.lowCapacity,
+                        thirdResult,
+                        capFreqGroup.highCapacity,
+                        capacityScaled
+                    )
+                val highCapacityInterpolation =
+                    interpolation.linearInterpolation(
+                        secondResult,
+                        capFreqGroup.lowCapacity,
+                        fourthResult,
+                        capFreqGroup.highCapacity,
+                        capacityScaled
+                    )
+                val result = interpolation.linearInterpolation(
+                    lowFrequencyInterpolation,
+                    capFreqGroup.lowFrequency,
+                    highCapacityInterpolation,
+                    capFreqGroup.highFrequency,
+                    frequencyScaled
+                )
+                Mono.just(result)
+            }
+        val resultsMapping = mapOf(ComponentsConfig.evalValue to Double::class)
+        return result.flatMap { getEvalResult(input, mapOf(ComponentsConfig.evalValue to it), resultsMapping) }
+    }
+
+    private fun getEvalResult(
+        input: EvaluationInput,
+        resultsMap: Map<String, Any>,
+        resultsMapping: Map<String, KClass<*>>
+    ): Mono<EvalResult> {
+        val result =
+            EvalResult(EvalResultInfo.SUCCESS, input, resultsMap, resultsMapping, "successfully evaluated $purposeName")
+        return Mono.just(result)
+    }
+
+    private data class CapacityFrequencyGroup(
+        val lowCapacity: BigDecimal?,
+        val highCapacity: BigDecimal?,
+        val lowFrequency: BigDecimal?,
+        val highFrequency: BigDecimal?
+    )
+
+    private fun ids(polynomialGroup: PolynomialGroups): PolynomialsFound {
         val ids = mutableListOf<Long>()
 
         val first = polynomialGroup.lowCapacityLowFrequency.polynomial
@@ -102,51 +185,27 @@ class PolynomialEvaluationService(
         if (second != null) ids.add(second.polynomialId)
         if (third != null) ids.add(third.polynomialId)
         if (fourth != null) ids.add(fourth.polynomialId)
+        val polynomials = ids.toList()
+        return PolynomialsFound(polynomials, first, second, third, fourth)
+    }
 
-// cache this thing
+    private data class PolynomialsFound(
+        val polynomialIds: List<Long>,
+        val first: PolynomialSearchResult?,
+        val second: PolynomialSearchResult?,
+        val third: PolynomialSearchResult?,
+        val fourth: PolynomialSearchResult?
+    )
 
-        val mappings = coefficientsService
-            .findPolynomialMappingByIdIn(ids.toList())
-            .publishOn(Schedulers.boundedElastic())
-            .cache()
-            .collectList()
-            .toFuture()
-            .get(timeOutValue, timeOutUnit) ?: return Mono.just(evalResult)
-        logger.info("polynomial coefficients $mappings")
-
-        val firstResult = calculate(first, mappings, evapTemp, condensingTemp)
-        val secondResult = calculate(second, mappings, evapTemp, condensingTemp)
-        val thirdResult = calculate(third, mappings, evapTemp, condensingTemp)
-        val fourthResult = calculate(fourth, mappings, evapTemp, condensingTemp)
-
-        val lowCapacity = getBigDecimalFromNullable(polynomialGroup.lowCapacity)
-        val highCapacity = getBigDecimalFromNullable(polynomialGroup.highCapacity)
-        val capacityScaled = getBigDecimalFromNullable(capacity)
-
-        val lowFrequency = getBigDecimalFromNullable(polynomialGroup.lowFrequency)
-        val highFrequency = getBigDecimalFromNullable(polynomialGroup.highFrequency)
-        val frequencyScaled = getBigDecimalFromNullable(frequency)
-
-        val lowFrequencyInterpolation =
-            interpolation.linearInterpolation(firstResult, lowCapacity, thirdResult, highCapacity, capacityScaled)
-        val highCapacityInterpolation =
-            interpolation.linearInterpolation(secondResult, lowCapacity, fourthResult, highCapacity, capacityScaled)
-
-        val result = interpolation.linearInterpolation(
-            lowFrequencyInterpolation,
-            lowFrequency,
-            highCapacityInterpolation,
-            highFrequency,
-            frequencyScaled
-        )
-
-        if (result.equals(Long.MAX_VALUE)) return Mono.just(errorEvalResult("value calculated out of scope", input))
-        val resultsMap = mapOf(ComponentsConfig.evalValue to result.toDouble())
-        val resultsMapping = mapOf(ComponentsConfig.evalValue to Double::class)
-
-        val successResult =
-            EvalResult(EvalResultInfo.SUCCESS, input, resultsMap, resultsMapping, "successfully evaluated $purposeName")
-        return Mono.just(successResult)
+    private fun evaluateMono(
+        polynomial: PolynomialSearchResult?,
+        mappings: List<PolynomialCoefficientsEntity>,
+        evapTemp: Double,
+        condTemp: Double
+    ): Mono<BigDecimal> {
+        val result = calculate(polynomial, mappings, evapTemp, condTemp)
+            ?: return Mono.error(RuntimeException("could not calcualte polynomial value"))
+        return Mono.just(result)
     }
 
     private fun calculate(

@@ -18,6 +18,7 @@ import refrigeration.components.selector.config.polynomials.search.PolynomialSea
 import refrigeration.components.selector.fluid.FluidPropertyService
 import refrigeration.components.selector.pools.CyclesThreadPool
 import refrigeration.components.selector.util.*
+import java.math.BigDecimal
 
 @Service
 class CompressorEvaluation(
@@ -108,9 +109,9 @@ class CompressorEvaluation(
 
         val compressorIOEvaluation = Mono.zip(densityAtInlet, massFlow, enthalpyAtInlet, evaporationPressure).map { t ->
             val density = t.t1
-            val massflowValue = (t.t2.result[ComponentsConfig.evalValue] as? Double)
-                ?: throw RuntimeException("mass flow value could not be calculated from eval result")
-            val volumetricFlow=massflowValue.div(density)
+            val massFlowBigDecimal = t.t2.result[ComponentsConfig.evalValue] as? BigDecimal?: throw RuntimeException("mass flow value could not be calculated from eval result")
+            val massflowValue = (massFlowBigDecimal.toDouble())
+            val volumetricFlow = massflowValue.div(density)
             val enthalpy = t.t3
             val evapPressure = t.t4
 
@@ -134,9 +135,9 @@ class CompressorEvaluation(
 
     private fun convert(t: Tuple2<CompressorIO, EvalResult>, input: EvaluationInput): EvalResult {
         if ((t.t1 == null) or (t.t2 == null)) throw RuntimeException("Either volume flow not found or electric eval")
-        val electricPowerValue = t.t2.result[ComponentsConfig.evalValue] as? Double
+        val electricPowerValue = t.t2.result[ComponentsConfig.evalValue] as? BigDecimal
             ?: throw RuntimeException("Electric eval not found")
-        return getEvalResult(t.t1.volumeFlow, t.t1.massFlow, t.t1.density, t.t1.enthalpy, electricPowerValue, t.t1.pressure, input)
+        return getEvalResult(t.t1.volumeFlow, t.t1.massFlow, t.t1.density, t.t1.enthalpy, electricPowerValue.toDouble(), t.t1.pressure, input)
     }
 
     private fun getEvalResult(
