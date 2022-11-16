@@ -141,8 +141,8 @@ class PolynomialEvaluationService(
         )
 
         if (result.equals(Long.MAX_VALUE)) return Mono.just(errorEvalResult("value calculated out of scope", input))
-        val resultsMap = mapOf(ComponentsConfig.polynomialEvaluationValue to result.toDouble())
-        val resultsMapping = mapOf(ComponentsConfig.polynomialEvaluationValue to Double::class)
+        val resultsMap = mapOf(ComponentsConfig.evalValue to result.toDouble())
+        val resultsMapping = mapOf(ComponentsConfig.evalValue to Double::class)
 
         val successResult =
             EvalResult(EvalResultInfo.SUCCESS, input, resultsMap, resultsMapping, "successfully evaluated $purposeName")
