@@ -6,6 +6,8 @@ data class CompressorIO(
     val density: Double,
     val enthalpy: Double,
     val evaporationPressure: Double,
-    val condensingPressure:Double,
-    val refrigerantArea: String
+    val condensingPressure: Double,
+    val refrigerantArea: String,
+    val electricPower: Double,
+
 )

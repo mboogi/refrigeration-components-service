@@ -65,6 +65,7 @@ class FluidPropertyService(
         val request = FluidPropertyRequest("D", "T", temperature, "Q", 1.0, fluid)
         return client.getNumericProperty(request).subscribeOn(Schedulers.fromExecutor(pool))
     }
+
     fun getWetVapourDensity(temperature: Double, fluid: String): Mono<Double> {
         val request = FluidPropertyRequest("D", "T", temperature, "Q", 0.0, fluid)
         return client.getNumericProperty(request).subscribeOn(Schedulers.fromExecutor(pool))
@@ -83,5 +84,65 @@ class FluidPropertyService(
     fun getWetVapourPressure(temperature: Double, fluid: String): Mono<Double> {
         val request = FluidPropertyRequest("P", "T", temperature, "Q", 0.0, fluid)
         return client.getNumericProperty(request).subscribeOn(Schedulers.fromExecutor(pool))
+    }
+
+    private fun getLiquidDensity(
+        subCool: Double,
+        refrigerant: String,
+        temperature: Double,
+        pressure: Double
+    ): Mono<Double> {
+        var densityAtInlet: Mono<Double>?
+        if (subCool == 0.0) {
+            densityAtInlet = getWetVapourDensity(temperature, refrigerant)
+        } else {
+            densityAtInlet = getSubCooledVapourDensity(temperature, pressure, refrigerant)
+        }
+        return densityAtInlet
+    }
+
+    private fun getLiquidEnthalpy(
+        subCool: Double,
+        refrigerant: String,
+        inletTemp: Double,
+        pressure: Double
+    ): Mono<Double> {
+        var enthalpy: Mono<Double>?
+        if (subCool == 0.0) {
+            enthalpy = getDryVapourEnthalpy(inletTemp, refrigerant)
+        } else {
+            enthalpy = getSuperHeatedVapourEnthalpy(inletTemp, pressure, refrigerant)
+        }
+        return enthalpy
+    }
+
+    fun getVapourDensity(
+        superheat: Double,
+        refrigerant: String,
+        inletTemp: Double,
+        pressure: Double
+    ): Mono<Double> {
+        var densityAtInlet: Mono<Double>?
+        if (superheat == 0.0) {
+            densityAtInlet = getDryVapourDensity(inletTemp, refrigerant)
+        } else {
+            densityAtInlet = getSuperHeatedVapourDensity(inletTemp, pressure, refrigerant)
+        }
+        return densityAtInlet
+    }
+
+    fun getVapourEnthalpy(
+        superheat: Double,
+        refrigerant: String,
+        inletTemp: Double,
+        pressure: Double
+    ): Mono<Double> {
+        var enthalpy: Mono<Double>?
+        if (superheat == 0.0) {
+            enthalpy = getDryVapourEnthalpy(inletTemp, refrigerant)
+        } else {
+            enthalpy = getSuperHeatedVapourEnthalpy(inletTemp, pressure, refrigerant)
+        }
+        return enthalpy
     }
 }
