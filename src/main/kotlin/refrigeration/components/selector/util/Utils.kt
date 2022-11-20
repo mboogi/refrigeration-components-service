@@ -1,5 +1,6 @@
 package refrigeration.components.selector.util
 
+import reactor.core.publisher.Mono
 import refrigeration.components.selector.api.polynomials.*
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -33,6 +34,7 @@ fun getFrequencyMapping(
 ): FrequencyPolynomialMapping {
     return FrequencyPolynomialMapping(polynomialId, request.frequency, polynomialId)
 }
+
 fun getPolynomialTypeMapping(
     request: PolynomialCoefficientRequest,
     polynomialId: Long
@@ -158,10 +160,20 @@ fun getStandardScale(): ScalePair {
 
 fun getBigDecimalFromNullable(value: Double?): BigDecimal? {
     return if (value != null) {
-        val scale= getStandardScale()
+        val scale = getStandardScale()
         BigDecimal(value).setScale(scale.scale, scale.roundingMode)
     } else {
         null
+    }
+}
+
+fun getBigDecimalMonoFromNullable(value: Double?): Mono<BigDecimal> {
+    return if (value != null) {
+        val scale = getStandardScale()
+        val result = BigDecimal(value).setScale(scale.scale, scale.roundingMode)
+        Mono.just(result)
+    } else {
+        Mono.empty()
     }
 }
 

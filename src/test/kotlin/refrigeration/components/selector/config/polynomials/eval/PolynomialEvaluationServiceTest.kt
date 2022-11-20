@@ -12,6 +12,7 @@ import refrigeration.components.selector.TestContainersSetup
 import refrigeration.components.selector.api.EvalResult
 import refrigeration.components.selector.api.EvalResultInfo
 import refrigeration.components.selector.api.EvaluationInput
+import refrigeration.components.selector.api.ResultValues
 import refrigeration.components.selector.config.polynomials.db.PolynomialTypesEnum
 import refrigeration.components.selector.config.polynomials.search.PolynomialCoefficientsService
 import refrigeration.components.selector.config.polynomials.search.PolynomialSearchService
@@ -48,11 +49,15 @@ internal class PolynomialEvaluationServiceTest(
         )
         val input = EvaluationInput(PolynomialTypesEnum.MASS_FLOW.toString(), inputMap)
         val result = evaluationService.evaluate(listOf(input)).blockFirst()
+        val expectedResultValues = ResultValues(
+            "",
+            mapOf("evalValue" to 308.582513720247),
+            mapOf("evalValue" to Double::class)
+        )
         val expectedResult = EvalResult(
             EvalResultInfo.SUCCESS,
             input,
-            mapOf("evalValue" to 308.582513720247),
-            mapOf("evalValue" to Double::class),
+            expectedResultValues,
             "successfully evaluated MASS_FLOW"
         )
         Assertions.assertEquals(expectedResult, result)
@@ -77,11 +82,15 @@ internal class PolynomialEvaluationServiceTest(
         )
         val input = EvaluationInput(PolynomialTypesEnum.MASS_FLOW.toString(), inputMap)
         val result = evaluationService.evaluate(listOf(input)).blockFirst()
+        val expectedResultValues = ResultValues(
+            "",
+            mapOf("evalValue" to 308.582513720247),
+            mapOf("evalValue" to Double::class)
+        )
         val expectedResult = EvalResult(
             EvalResultInfo.SUCCESS,
             input,
-            mapOf("evalValue" to 308.582513720247),
-            mapOf("evalValue" to Double::class),
+            expectedResultValues,
             "successfully evaluated MASS_FLOW"
         )
         Assertions.assertEquals(expectedResult, result)
@@ -107,11 +116,15 @@ internal class PolynomialEvaluationServiceTest(
         )
         val input = EvaluationInput(PolynomialTypesEnum.MASS_FLOW.toString(), inputMap)
         val result = evaluationService.evaluate(listOf(input)).blockFirst()
+        val expectedResultValues = ResultValues(
+            "",
+            mapOf("evalValue" to 681.0096854515511),
+            mapOf("evalValue" to Double::class)
+        )
         val expectedResult = EvalResult(
             EvalResultInfo.SUCCESS,
             input,
-            mapOf("evalValue" to 681.0096854515511),
-            mapOf("evalValue" to Double::class),
+            expectedResultValues,
             "successfully evaluated MASS_FLOW"
         )
         Assertions.assertEquals(expectedResult, result)
@@ -137,11 +150,15 @@ internal class PolynomialEvaluationServiceTest(
         )
         val input = EvaluationInput(PolynomialTypesEnum.MASS_FLOW.toString(), inputMap)
         val result = evaluationService.evaluate(listOf(input)).blockFirst()
+        val expectedResultValues = ResultValues(
+            "",
+            mapOf("evalValue" to 462.8737705803499),
+            mapOf("evalValue" to Double::class)
+        )
         val expectedResult = EvalResult(
             EvalResultInfo.SUCCESS,
             input,
-            mapOf("evalValue" to 462.8737705803499),
-            mapOf("evalValue" to Double::class),
+            expectedResultValues,
             "successfully evaluated MASS_FLOW"
         )
         Assertions.assertEquals(expectedResult, result)
@@ -166,13 +183,16 @@ internal class PolynomialEvaluationServiceTest(
             ComponentsConfig.compressorType to compressorType
         )
         val input = EvaluationInput(PolynomialTypesEnum.MASS_FLOW.toString(), inputMap)
-
+        val expectedResultValues = ResultValues(
+            "",
+            mapOf("evalValue" to 617.165027440467),
+            mapOf("evalValue" to Double::class),
+        )
         val result = evaluationService.evaluate(listOf(input)).blockFirst()
         val expectedResult = EvalResult(
             EvalResultInfo.SUCCESS,
             input,
-            mapOf("evalValue" to 617.165027440467),
-            mapOf("evalValue" to Double::class),
+            expectedResultValues,
             "successfully evaluated MASS_FLOW"
         )
 

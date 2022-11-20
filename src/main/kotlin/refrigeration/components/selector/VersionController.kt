@@ -6,7 +6,6 @@ import reactor.core.publisher.Mono
 
 @RestController
 class VersionController {
-
     @GetMapping("/version")
     fun version(): Mono<String> {
         return Mono.just("1.00")

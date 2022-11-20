@@ -2,19 +2,22 @@ package refrigeration.components.selector.config.polynomials.search
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.publisher.toMono
 import refrigeration.components.selector.config.polynomials.db.PolynomialSearchResult
+import refrigeration.components.selector.pools.WorkerPool
 import refrigeration.components.selector.util.eq
-import refrigeration.components.selector.util.gt
 import refrigeration.components.selector.util.gte
 import refrigeration.components.selector.util.lte
 
 @Service
-class PolynomialSearchService(private val service: PolynomialCoefficientsService) {
+class PolynomialSearchService(private val service: PolynomialCoefficientsService, private val pool: WorkerPool) {
     private val lowCapLowFreqGroupName = "lowCapacityLowFrequencyGroup"
     private val lowCapHighFreqGroupName = "lowCapacityHighFrequencyGroup"
     private val highCapLowFreGroupName = "highCapacityLowFrequencyGroup"
     private val highCapHighFreqGroupName = "highCapacityHighFrequencyGroup"
+
     companion object {
         private val logger = LoggerFactory.getLogger(PolynomialSearchService::class.java)
     }
@@ -40,36 +43,40 @@ class PolynomialSearchService(private val service: PolynomialCoefficientsService
         frequency: Double,
         transCritical: Boolean,
         polynomialType: String
-    ): PolynomialGroups {
+    ): Mono<PolynomialGroups> {
         logger.debug("$compressor $refrigerant $transCritical $polynomialType")
         val result =
-            service.findPolynomialsForCompressorAndRefrigerant(
-                compressor,
-                refrigerant,
-                transCritical,
-                polynomialType
-            )
-                .publishOn(Schedulers.boundedElastic())
+            service
+                .findPolynomialsForCompressorAndRefrigerant(
+                    compressor,
+                    refrigerant,
+                    transCritical,
+                    polynomialType
+                )
+                .cache()
+                .subscribeOn(Schedulers.fromExecutor(pool), false)
                 .collectList()
-                .block()
-        result ?: return defaultPolynomialGroup()
-        return selectNearestPolynomials(capacity, frequency, result)
+                .toMono()
+
+        return result.flatMap { selectNearestPolynomials(capacity, frequency, it) }
     }
 
     private fun selectNearestPolynomials(
         capacity: Double,
         frequency: Double,
         polynomials: List<PolynomialSearchResult>
-    ): PolynomialGroups {
+    ): Mono<PolynomialGroups> {
         val lowCapacity =
             polynomials.sortedBy { it.capacity }.filter { it.capacity lte capacity }.map { it.capacity }.lastOrNull()
         val highCapacity =
             polynomials.sortedBy { it.capacity }.filter { it.capacity gte capacity }.map { it.capacity }.firstOrNull()
 
         val lowFrequency =
-            polynomials.sortedBy { it.frequency }.filter { it.frequency lte frequency }.map { it.frequency }.lastOrNull()
+            polynomials.sortedBy { it.frequency }.filter { it.frequency lte frequency }.map { it.frequency }
+                .lastOrNull()
         val highFrequency =
-            polynomials.sortedBy { it.frequency }.filter { it.frequency gte frequency }.map { it.frequency }.firstOrNull()
+            polynomials.sortedBy { it.frequency }.filter { it.frequency gte frequency }.map { it.frequency }
+                .firstOrNull()
 
         val lowCapacityLowFrequency =
             polynomials.filter { (it.capacity eq lowCapacity) and (it.frequency eq lowFrequency) }.firstOrNull()
@@ -84,7 +91,7 @@ class PolynomialSearchService(private val service: PolynomialCoefficientsService
         val polynomialsFound = !(lowCapacityLowFrequency == null).and(lowCapacityHighFrequency == null)
             .and(highCapacityLowFrequency == null).and(highCapacityHighFrequency == null)
 
-        if (!polynomialsFound) return defaultPolynomialGroup()
+        if (!polynomialsFound) return Mono.just(defaultPolynomialGroup())
 
         val lowCapacityLowFrequencyGroup =
             PolynomialSearchGroup(lowCapLowFreqGroupName, lowCapacityLowFrequency)
@@ -94,7 +101,7 @@ class PolynomialSearchService(private val service: PolynomialCoefficientsService
         val highCapacityHighFrequencyGroup =
             PolynomialSearchGroup(highCapHighFreqGroupName, highCapacityHighFrequency)
 
-        return PolynomialGroups(
+        val result = PolynomialGroups(
             false,
             lowCapacity,
             highCapacity,
@@ -105,5 +112,6 @@ class PolynomialSearchService(private val service: PolynomialCoefficientsService
             highCapacityLowFrequencyGroup,
             highCapacityHighFrequencyGroup
         )
+        return Mono.just(result)
     }
 }
