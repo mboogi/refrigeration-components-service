@@ -7,7 +7,6 @@ import refrigeration.components.selector.ComponentsConfig
 import refrigeration.components.selector.api.*
 import refrigeration.components.selector.fluid.FluidPropertyService
 import refrigeration.components.selector.util.*
-import kotlin.math.abs
 
 @Service
 class CondenserEvaluation(private val fluidPropertyService: FluidPropertyService) : Evaluator {
@@ -28,10 +27,8 @@ class CondenserEvaluation(private val fluidPropertyService: FluidPropertyService
 
     override fun getRequiredInputKeys(): Set<String> {
         return setOf(
-            ComponentsConfig.compressorOutletTemperature,
-            ComponentsConfig.condensingPressureKey,
-            ComponentsConfig.subcool,
-            ComponentsConfig.massFlowRealKeyStandard
+            ComponentsConfig.electricPowerKey,
+            ComponentsConfig.evaporatorPower
         )
     }
 
@@ -41,41 +38,16 @@ class CondenserEvaluation(private val fluidPropertyService: FluidPropertyService
     }
 
     private fun evaluate(input: EvaluationInput): Mono<EvalResult> {
-        val compressorOutletTemperature = getCompressorOutletTemperature(input.anyInputs) ?: return Mono.empty()
-        val condensingPressure = getCondensingPressure(input.anyInputs) ?: return Mono.empty()
-        val condensingTemperature = getCondensingTemperature(input.anyInputs) ?: return Mono.empty()
-        val subCool = getSubCool(input.anyInputs) ?: return Mono.empty()
-        val massFlow = getRealMassFlow(input.anyInputs) ?: return Mono.empty()
-        val refrigerant = getRefrigerant(input.anyInputs) ?: return Mono.empty()
-
-        val enthalpyStart = fluidPropertyService.getSuperHeatedVapourEnthalpy(
-            compressorOutletTemperature,
-            condensingTemperature + 273.15,
-            refrigerant
-        )
-
-        val enthalpyEnd =
-            fluidPropertyService.getLiquidEnthalpy(
-                subCool,
-                refrigerant,
-                condensingTemperature - subCool + 273.15,
-                condensingPressure
-            )
-
-        val result = Mono
-            .zip(enthalpyStart, enthalpyEnd)
-            .map {
-                val enthalpyFirst = it.t1
-                val enthalpySecond = it.t2
-                (massFlow / 3600) * abs(enthalpyFirst.minus(enthalpySecond))
-            }.map { getEvalResult(it, input) }
-        return result
+        val electricPower= getElectricPower(input.anyInputs)?:return Mono.empty()
+        val refrigerationPower= getRefrigerationPower(input.anyInputs) ?:return Mono.empty()
+        val result=electricPower+refrigerationPower
+        return Mono.just(getEvalResult(result,input))
     }
 
-    private fun getEvalResult(condenserPower: Double, input: EvaluationInput): EvalResult {
+    private fun getEvalResult(power: Double, input: EvaluationInput): EvalResult {
         val resultValues = ResultValues(
             id,
-            mapOf<String, Any>(ComponentsConfig.condenserPower to condenserPower),
+            mapOf<String, Any>(ComponentsConfig.condenserPower to power),
             mapOf()
         )
         return EvalResult(EvalResultInfo.SUCCESS, input, resultValues, "Condenser Evaluation Finished")

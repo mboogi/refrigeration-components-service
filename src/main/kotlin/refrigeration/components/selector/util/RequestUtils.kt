@@ -32,6 +32,9 @@ fun getCondensingPressure(input: Map<String, Any>): Double? {
 fun getElectricPower(input: Map<String, Any>): Double? {
     return input[ComponentsConfig.electricPowerKey] as? Double
 }
+fun getRefrigerationPower(input: Map<String, Any>): Double? {
+    return input[ComponentsConfig.evaporatorPower] as? Double
+}
 
 fun getVolumeFlow(input: Map<String, Any>): Double? {
     return input[ComponentsConfig.volumeFlow] as? Double
