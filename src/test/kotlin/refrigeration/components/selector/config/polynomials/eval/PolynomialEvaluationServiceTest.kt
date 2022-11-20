@@ -14,8 +14,8 @@ import refrigeration.components.selector.api.EvalResultInfo
 import refrigeration.components.selector.api.EvaluationInput
 import refrigeration.components.selector.api.ResultValues
 import refrigeration.components.selector.config.polynomials.db.PolynomialTypesEnum
-import refrigeration.components.selector.config.polynomials.search.PolynomialCoefficientsService
-import refrigeration.components.selector.config.polynomials.search.PolynomialSearchService
+import refrigeration.components.selector.config.polynomials.crud.PolynomialCoefficientsService
+import refrigeration.components.selector.config.polynomials.crud.PolynomialSearchService
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @Testcontainers

@@ -11,9 +11,9 @@ import refrigeration.components.selector.api.EvaluationInput
 import refrigeration.components.selector.api.ResultValues
 import refrigeration.components.selector.config.polynomials.db.PolynomialCoefficientsEntity
 import refrigeration.components.selector.config.polynomials.db.PolynomialSearchResult
-import refrigeration.components.selector.config.polynomials.search.PolynomialCoefficientsService
-import refrigeration.components.selector.config.polynomials.search.PolynomialGroups
-import refrigeration.components.selector.config.polynomials.search.PolynomialSearchService
+import refrigeration.components.selector.config.polynomials.crud.PolynomialCoefficientsService
+import refrigeration.components.selector.config.polynomials.crud.PolynomialGroups
+import refrigeration.components.selector.config.polynomials.crud.PolynomialSearchService
 import refrigeration.components.selector.util.*
 import java.math.BigDecimal
 import kotlin.reflect.KClass

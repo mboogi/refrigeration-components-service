@@ -1,4 +1,4 @@
-package refrigeration.components.selector.config.polynomials.search
+package refrigeration.components.selector.config.polynomials.crud
 
 data class PolynomialGroups(
     val isEmpty: Boolean,

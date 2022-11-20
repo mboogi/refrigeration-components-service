@@ -1,4 +1,4 @@
-package refrigeration.components.selector.cycles
+package refrigeration.components.selector.components
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -6,10 +6,10 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import refrigeration.components.selector.ComponentsConfig
 import refrigeration.components.selector.api.*
+import refrigeration.components.selector.config.polynomials.crud.PolynomialCoefficientsService
+import refrigeration.components.selector.config.polynomials.crud.PolynomialSearchService
 import refrigeration.components.selector.config.polynomials.db.PolynomialTypesEnum
 import refrigeration.components.selector.config.polynomials.eval.PolynomialEvaluationService
-import refrigeration.components.selector.config.polynomials.search.PolynomialCoefficientsService
-import refrigeration.components.selector.config.polynomials.search.PolynomialSearchService
 import refrigeration.components.selector.fluid.FluidPropertyService
 import refrigeration.components.selector.util.*
 import java.math.BigDecimal
@@ -76,7 +76,6 @@ class CompressorEvaluation(
         val superHeat = getSuperHeat(input.anyInputs) ?: return Mono.empty()
         val subCool = getSubCool(input.anyInputs) ?: return Mono.empty()
         if ((superHeat < 0.0) or (subCool < 0.0)) return Mono.empty()
-        // if (superHeat == 20.0) return initialEval
         return realConditionsEvaluation(initialEval)
     }
 

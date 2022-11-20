@@ -10,7 +10,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import reactor.test.StepVerifier
 import refrigeration.components.selector.TestContainersSetup
 import refrigeration.components.selector.TestDataProvider
-import refrigeration.components.selector.config.polynomials.search.PolynomialCoefficientsService
+import refrigeration.components.selector.config.polynomials.crud.PolynomialCoefficientsService
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @Testcontainers()

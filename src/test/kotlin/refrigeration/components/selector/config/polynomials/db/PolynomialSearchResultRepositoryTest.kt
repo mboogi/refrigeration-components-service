@@ -8,7 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.testcontainers.junit.jupiter.Testcontainers
 import reactor.core.scheduler.Schedulers
 import refrigeration.components.selector.TestContainersSetup
-import refrigeration.components.selector.config.polynomials.search.PolynomialCoefficientsService
+import refrigeration.components.selector.config.polynomials.crud.PolynomialCoefficientsService
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @Testcontainers

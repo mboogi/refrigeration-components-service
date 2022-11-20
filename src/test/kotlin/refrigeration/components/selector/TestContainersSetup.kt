@@ -6,7 +6,7 @@ import org.testcontainers.containers.JdbcDatabaseContainer
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 import reactor.core.scheduler.Schedulers
-import refrigeration.components.selector.config.polynomials.search.PolynomialCoefficientsService
+import refrigeration.components.selector.config.polynomials.crud.PolynomialCoefficientsService
 import java.util.function.Supplier
 
 fun postgres(imageName: String, opts: JdbcDatabaseContainer<Nothing>.() -> Unit) =
