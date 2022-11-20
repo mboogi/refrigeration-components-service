@@ -1,4 +1,4 @@
-package refrigeration.components.selector.cycles
+package refrigeration.components.selector.components
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

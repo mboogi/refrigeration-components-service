@@ -1,4 +1,4 @@
-package refrigeration.components.selector.cycles
+package refrigeration.components.selector.components
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Test
@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.testcontainers.junit.jupiter.Testcontainers
 import refrigeration.components.selector.ComponentsConfig
-import refrigeration.components.selector.TestContainersSetup
 import refrigeration.components.selector.api.EvaluationInput
 import refrigeration.components.selector.config.polynomials.db.PolynomialTypesEnum
 

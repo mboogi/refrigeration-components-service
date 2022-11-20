@@ -1,4 +1,4 @@
-package refrigeration.components.selector.cycles
+package refrigeration.components.selector.components
 
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux

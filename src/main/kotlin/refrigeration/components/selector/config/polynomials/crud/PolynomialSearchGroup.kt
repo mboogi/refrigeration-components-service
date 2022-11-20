@@ -1,4 +1,4 @@
-package refrigeration.components.selector.config.polynomials.search
+package refrigeration.components.selector.config.polynomials.crud
 
 import refrigeration.components.selector.config.polynomials.db.PolynomialSearchResult
 

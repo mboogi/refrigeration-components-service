@@ -1,6 +1,5 @@
-package refrigeration.components.selector.config.polynomials.search
+package refrigeration.components.selector.config.polynomials.crud
 
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance

@@ -1,4 +1,4 @@
-package refrigeration.components.selector.cycles
+package refrigeration.components.selector.components
 
 data class CompressorIO(
     val volumeFlow: Double,
