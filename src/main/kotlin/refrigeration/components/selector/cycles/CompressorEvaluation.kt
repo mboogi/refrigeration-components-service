@@ -73,8 +73,8 @@ class CompressorEvaluation(
 
     fun evaluate(input: EvaluationInput): Mono<EvalResult> {
         val initialEval = initialEvaluation(input)
-        val superHeat = getSuperHeat(input) ?: return Mono.empty()
-        val subCool = getSubCool(input) ?: return Mono.empty()
+        val superHeat = getSuperHeat(input.anyInputs) ?: return Mono.empty()
+        val subCool = getSubCool(input.anyInputs) ?: return Mono.empty()
         if ((superHeat < 0.0) or (subCool < 0.0)) return Mono.empty()
         // if (superHeat == 20.0) return initialEval
         return realConditionsEvaluation(initialEval)
@@ -85,20 +85,20 @@ class CompressorEvaluation(
     }
 
     private fun evalRealConditions(evalResult: EvalResult): Mono<EvalResult> {
-        val superheat = getSuperHeat(evalResult.input) ?: return Mono.empty()
-        val refrigerant = getRefrigerant(evalResult.input) ?: return Mono.empty()
-        val evapTemp = getEvaporationTemperature(evalResult.input) ?: return Mono.empty()
+        val superheat = getSuperHeat(evalResult.input.anyInputs) ?: return Mono.empty()
+        val refrigerant = getRefrigerant(evalResult.input.anyInputs) ?: return Mono.empty()
+        val evapTemp = getEvaporationTemperature(evalResult.input.anyInputs) ?: return Mono.empty()
 
-        val evaporationPressure = getEvaporationPressure(evalResult.resultValues) ?: return Mono.empty()
-        val condensingPressure = getCondensingPressure(evalResult.resultValues) ?: return Mono.empty()
-        val electricInput = getElectricPower(evalResult.resultValues) ?: return Mono.empty()
+        val evaporationPressure = getEvaporationPressure(evalResult.resultValues.result) ?: return Mono.empty()
+        val condensingPressure = getCondensingPressure(evalResult.resultValues.result) ?: return Mono.empty()
+        val electricInput = getElectricPower(evalResult.resultValues.result) ?: return Mono.empty()
 
         val inletTemp = evapTemp + 273.15 + superheat
         val densityInputRealConditions =
             fluidsService.getVapourDensity(superheat, refrigerant, inletTemp, evaporationPressure)
         val enthalpyInputRealConditions =
             fluidsService.getVapourEnthalpy(superheat, refrigerant, inletTemp, evaporationPressure)
-        val volumeFlow = getVolumeFlow(evalResult.resultValues) ?: return Mono.empty()
+        val volumeFlow = getVolumeFlow(evalResult.resultValues.result) ?: return Mono.empty()
 
         val massFlowReal = densityInputRealConditions.flatMap { massFlowRealConditions(volumeFlow, it) }
 
@@ -186,9 +186,9 @@ class CompressorEvaluation(
     }
 
     private fun initialEvaluation(input: EvaluationInput): Mono<EvalResult> {
-        val evapTemp = getEvaporationTemperature(input) ?: return Mono.empty()
-        val condensingTemperature = getCondensingTemperature(input) ?: return Mono.empty()
-        val refrigerant = getRefrigerant(input) ?: return Mono.empty()
+        val evapTemp = getEvaporationTemperature(input.anyInputs) ?: return Mono.empty()
+        val condensingTemperature = getCondensingTemperature(input.anyInputs) ?: return Mono.empty()
+        val refrigerant = getRefrigerant(input.anyInputs) ?: return Mono.empty()
         val checkTransCriticalHere = false
 
         val massFlow =

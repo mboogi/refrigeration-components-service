@@ -71,8 +71,12 @@ class FluidPropertyService(
         return client.getNumericProperty(request).subscribeOn(Schedulers.fromExecutor(pool))
     }
 
-    fun getSubCooledVapourDensity(temperature: Double, pressure: Double, fluid: String): Mono<Double> {
-        val request = FluidPropertyRequest("D", "T", temperature, "P|liq", pressure, fluid)
+    fun getSubCooledLiquidDensity(temperature: Double, pressure: Double, fluid: String): Mono<Double> {
+        val request = FluidPropertyRequest("D", "T", temperature, "P|liquid", pressure, fluid)
+        return client.getNumericProperty(request).subscribeOn(Schedulers.fromExecutor(pool))
+    }
+    fun getSubCooledLiquidEnthalpy(temperature: Double, pressure: Double, fluid: String): Mono<Double> {
+        val request = FluidPropertyRequest("H", "T|liquid", temperature, "P", pressure, fluid)
         return client.getNumericProperty(request).subscribeOn(Schedulers.fromExecutor(pool))
     }
 
@@ -86,7 +90,7 @@ class FluidPropertyService(
         return client.getNumericProperty(request).subscribeOn(Schedulers.fromExecutor(pool))
     }
 
-    private fun getLiquidDensity(
+    fun getLiquidDensity(
         subCool: Double,
         refrigerant: String,
         temperature: Double,
@@ -96,12 +100,12 @@ class FluidPropertyService(
         if (subCool == 0.0) {
             densityAtInlet = getWetVapourDensity(temperature, refrigerant)
         } else {
-            densityAtInlet = getSubCooledVapourDensity(temperature, pressure, refrigerant)
+            densityAtInlet = getSubCooledLiquidDensity(temperature, pressure, refrigerant)
         }
         return densityAtInlet
     }
 
-    private fun getLiquidEnthalpy(
+    fun getLiquidEnthalpy(
         subCool: Double,
         refrigerant: String,
         inletTemp: Double,
@@ -109,9 +113,9 @@ class FluidPropertyService(
     ): Mono<Double> {
         var enthalpy: Mono<Double>?
         if (subCool == 0.0) {
-            enthalpy = getDryVapourEnthalpy(inletTemp, refrigerant)
+            enthalpy = getWetVapourEnthalpy(inletTemp, refrigerant)
         } else {
-            enthalpy = getSuperHeatedVapourEnthalpy(inletTemp, pressure, refrigerant)
+            enthalpy = getSubCooledLiquidEnthalpy(inletTemp, pressure, refrigerant)
         }
         return enthalpy
     }

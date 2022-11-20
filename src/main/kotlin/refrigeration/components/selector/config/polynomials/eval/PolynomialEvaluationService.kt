@@ -16,7 +16,6 @@ import refrigeration.components.selector.config.polynomials.search.PolynomialGro
 import refrigeration.components.selector.config.polynomials.search.PolynomialSearchService
 import refrigeration.components.selector.util.*
 import java.math.BigDecimal
-import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 
 class PolynomialEvaluationService(
@@ -24,18 +23,11 @@ class PolynomialEvaluationService(
     private val service: PolynomialSearchService,
     private val coefficientsService: PolynomialCoefficientsService
 ) {
-    private val timeOutValue = 500L
-    private val timeOutUnit = TimeUnit.MILLISECONDS
-
     companion object {
         private val logger = LoggerFactory.getLogger(PolynomialCoefficientsService::class.java)
     }
 
     private val interpolation = LinearInterpolation()
-
-    fun privateEvaluation(): Boolean {
-        return true
-    }
 
     fun getName(): String {
         return "PolynomialEvaluator"
@@ -64,25 +56,25 @@ class PolynomialEvaluationService(
 
     private fun evaluate(input: EvaluationInput): Mono<EvalResult> {
         val refrigerantErrorMsg = "refrigerant could not be found"
-        val refrigerant = getRefrigerant(input) ?: return getMonoError(refrigerantErrorMsg, input, purposeName)
+        val refrigerant = getRefrigerant(input.anyInputs) ?: return getMonoError(refrigerantErrorMsg, input, purposeName)
 
         val evapTempErrorMsg = "evap temp could not be found"
-        val evapTemp = getEvaporationTemperature(input) ?: return getMonoError(evapTempErrorMsg, input, purposeName)
+        val evapTemp = getEvaporationTemperature(input.anyInputs) ?: return getMonoError(evapTempErrorMsg, input, purposeName)
 
         val condTempErrorMsg = "cond temp could not be found"
-        val condensingTemp = getCondensingTemperature(input) ?: return getMonoError(condTempErrorMsg, input, purposeName)
+        val condensingTemp = getCondensingTemperature(input.anyInputs) ?: return getMonoError(condTempErrorMsg, input, purposeName)
 
         val capacityErrorMsg = "capacity could not be found"
-        val capacity = getCapacity(input) ?: return getMonoError(capacityErrorMsg, input, purposeName)
+        val capacity = getCapacity(input.anyInputs) ?: return getMonoError(capacityErrorMsg, input, purposeName)
 
         val frequencyErrorMsg = "frequency could not be found"
-        val frequency = getFrequency(input) ?: return getMonoError(frequencyErrorMsg, input, purposeName)
+        val frequency = getFrequency(input.anyInputs) ?: return getMonoError(frequencyErrorMsg, input, purposeName)
 
         val transCriticalErrorMsg = "transcricital operation type could not be found"
-        val transCritical = getTransCritical(input) ?: return getMonoError(transCriticalErrorMsg, input, purposeName)
+        val transCritical = getTransCritical(input.anyInputs) ?: return getMonoError(transCriticalErrorMsg, input, purposeName)
 
         val compressorTypeErrorMsg = "compressor type could not be found"
-        val compressorType = getCompressorType(input) ?: return getMonoError(compressorTypeErrorMsg, input, purposeName)
+        val compressorType = getCompressorType(input.anyInputs) ?: return getMonoError(compressorTypeErrorMsg, input, purposeName)
 
         val polynomialGroup =
             service.getPolynomialGroups(compressorType, refrigerant, capacity, frequency, transCritical, purposeName)

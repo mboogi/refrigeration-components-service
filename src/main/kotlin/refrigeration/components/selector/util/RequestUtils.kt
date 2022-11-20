@@ -9,52 +9,63 @@ import refrigeration.components.selector.api.ResultValues
 
 class RequestUtils
 
-fun getRefrigerant(input: EvaluationInput): String? {
-    return input.anyInputs[ComponentsConfig.refrigerantKey] as? String
+fun getRefrigerant(input: Map<String, Any>): String? {
+    return input[ComponentsConfig.refrigerantKey] as? String
 }
 
-fun getEvaporationTemperature(input: EvaluationInput): Double? {
-    return input.anyInputs[ComponentsConfig.evapTempKey] as? Double
-}
-fun getEvaporationPressure(input: ResultValues): Double? {
-    return input.result[ComponentsConfig.evaporationPressureKey] as? Double
+fun getEvaporationTemperature(input: Map<String, Any>): Double? {
+    return input[ComponentsConfig.evapTempKey] as? Double
 }
 
-fun getCondensingTemperature(input: EvaluationInput): Double? {
-    return input.anyInputs[ComponentsConfig.condTempKey] as? Double
-}
-fun getCondensingPressure(input: ResultValues): Double? {
-    return input.result[ComponentsConfig.condensingPressureKey] as? Double
-}
-fun getElectricPower(input: ResultValues): Double? {
-    return input.result[ComponentsConfig.electricPowerKey] as? Double
-}
-fun getVolumeFlow(input: ResultValues): Double? {
-    return input.result[ComponentsConfig.volumeFlow] as? Double
+fun getEvaporationPressure(input: Map<String, Any>): Double? {
+    return input[ComponentsConfig.evaporationPressureKey] as? Double
 }
 
-fun getCapacity(input: EvaluationInput): Double? {
-    return input.anyInputs[ComponentsConfig.capacity] as? Double
+fun getCondensingTemperature(input: Map<String, Any>): Double? {
+    return input[ComponentsConfig.condTempKey] as? Double
 }
 
-fun getFrequency(input: EvaluationInput): Double? {
-    return input.anyInputs[ComponentsConfig.frequency] as? Double
+fun getCondensingPressure(input: Map<String, Any>): Double? {
+    return input[ComponentsConfig.condensingPressureKey] as? Double
 }
 
-fun getTransCritical(input: EvaluationInput): Boolean? {
-    return input.anyInputs[ComponentsConfig.transCritical] as? Boolean
+fun getElectricPower(input: Map<String, Any>): Double? {
+    return input[ComponentsConfig.electricPowerKey] as? Double
 }
 
-fun getCompressorType(input: EvaluationInput): String? {
-    return input.anyInputs[ComponentsConfig.compressorType] as? String
+fun getVolumeFlow(input: Map<String, Any>): Double? {
+    return input[ComponentsConfig.volumeFlow] as? Double
+}
+fun getRealMassFlow(input: Map<String, Any>): Double? {
+    return input[ComponentsConfig.massFlowRealKeyStandard] as? Double
 }
 
-fun getSuperHeat(input: EvaluationInput): Double? {
-    return input.anyInputs[ComponentsConfig.superheat] as? Double
+fun getCapacity(input: Map<String, Any>): Double? {
+    return input[ComponentsConfig.capacity] as? Double
 }
 
-fun getSubCool(input: EvaluationInput): Double? {
-    return input.anyInputs[ComponentsConfig.subcool] as? Double
+fun getFrequency(input: Map<String, Any>): Double? {
+    return input[ComponentsConfig.frequency] as? Double
+}
+
+fun getTransCritical(input: Map<String, Any>): Boolean? {
+    return input[ComponentsConfig.transCritical] as? Boolean
+}
+
+fun getCompressorType(input: Map<String, Any>): String? {
+    return input[ComponentsConfig.compressorType] as? String
+}
+
+fun getCompressorOutletTemperature(input: Map<String, Any>): Double? {
+    return input[ComponentsConfig.compressorOutletTemperature] as? Double
+}
+
+fun getSuperHeat(input: Map<String, Any>): Double? {
+    return input[ComponentsConfig.superheat] as? Double
+}
+
+fun getSubCool(input: Map<String, Any>): Double? {
+    return input[ComponentsConfig.subcool] as? Double
 }
 
 fun errorEvalResult(text: String, input: EvaluationInput, id: String): EvalResult {
