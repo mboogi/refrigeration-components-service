@@ -32,6 +32,7 @@ fun getCondensingPressure(input: Map<String, Any>): Double? {
 fun getElectricPower(input: Map<String, Any>): Double? {
     return input[ComponentsConfig.electricPowerKey] as? Double
 }
+
 fun getRefrigerationPower(input: Map<String, Any>): Double? {
     return input[ComponentsConfig.evaporatorPower] as? Double
 }
@@ -39,6 +40,7 @@ fun getRefrigerationPower(input: Map<String, Any>): Double? {
 fun getVolumeFlow(input: Map<String, Any>): Double? {
     return input[ComponentsConfig.volumeFlow] as? Double
 }
+
 fun getRealMassFlow(input: Map<String, Any>): Double? {
     return input[ComponentsConfig.massFlowRealKeyStandard] as? Double
 }
@@ -78,4 +80,12 @@ fun errorEvalResult(text: String, input: EvaluationInput, id: String): EvalResul
 
 fun getMonoError(msg: String, input: EvaluationInput, id: String): Mono<EvalResult> {
     return Mono.just(errorEvalResult(msg, input, id))
+}
+
+fun <T>getValueForKey(input: EvaluationInput, evalResult: EvalResult, key: String):T? {
+    val keyFromInput = input.anyInputs[key] as? T
+    if (keyFromInput!=null) return keyFromInput
+    val keyFromResult=evalResult.resultValues.result[key] as? T
+    if (keyFromResult!=null)return keyFromResult
+    return null
 }
