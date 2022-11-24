@@ -38,10 +38,10 @@ class CondenserEvaluation(private val fluidPropertyService: FluidPropertyService
     }
 
     private fun evaluate(input: EvaluationInput): Mono<EvalResult> {
-        val electricPower= getElectricPower(input.anyInputs)?:return Mono.empty()
-        val refrigerationPower= getRefrigerationPower(input.anyInputs) ?:return Mono.empty()
-        val result=electricPower+refrigerationPower
-        return Mono.just(getEvalResult(result,input))
+        val electricPower = getElectricPower(input.anyInputs) ?: return getMonoError("electric power not found",input,id)
+        val refrigerationPower = getRefrigerationPower(input.anyInputs) ?: return getMonoError("refrigeration power not found",input,id)
+        val result = electricPower + refrigerationPower
+        return Mono.just(getEvalResult(result, input))
     }
 
     private fun getEvalResult(power: Double, input: EvaluationInput): EvalResult {

@@ -82,10 +82,14 @@ fun getMonoError(msg: String, input: EvaluationInput, id: String): Mono<EvalResu
     return Mono.just(errorEvalResult(msg, input, id))
 }
 
-fun <T>getValueForKey(input: EvaluationInput, evalResult: EvalResult, key: String):T? {
+fun <T> getValueForKey(input: EvaluationInput, evalResult: EvalResult, key: String): T? {
     val keyFromInput = input.anyInputs[key] as? T
-    if (keyFromInput!=null) return keyFromInput
-    val keyFromResult=evalResult.resultValues.result[key] as? T
-    if (keyFromResult!=null)return keyFromResult
+    if (keyFromInput != null) return keyFromInput
+    val keyFromResult = evalResult.resultValues.result[key] as? T
+    if (keyFromResult != null) return keyFromResult
     return null
+}
+
+fun <T> getValueForKey(values: Map<String, Any>, key: String): T? {
+    return values[key] as? T
 }

@@ -67,15 +67,14 @@ class CompressorEvaluation(
     }
 
     override fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
-        val monos = input.map { evaluate(it) }
-        return Flux.concat(monos)
+        return Flux.fromIterable(input).flatMap { evaluate(it) }
     }
 
     fun evaluate(input: EvaluationInput): Mono<EvalResult> {
         val initialEval = initialEvaluation(input)
-        val superHeat = getSuperHeat(input.anyInputs) ?: return Mono.empty()
-        val subCool = getSubCool(input.anyInputs) ?: return Mono.empty()
-        if ((superHeat < 0.0) or (subCool < 0.0)) return Mono.empty()
+        val superHeat = getSuperHeat(input.anyInputs) ?: return getMonoError("superheat not found", input, id)
+        val subCool = getSubCool(input.anyInputs) ?: return getMonoError("subcool not found", input, id)
+        if ((superHeat < 0.0) or (subCool < 0.0)) return getMonoError("superheat or subcool lesser than 0.0", input, id)
         return realConditionsEvaluation(initialEval)
     }
 
@@ -84,13 +83,25 @@ class CompressorEvaluation(
     }
 
     private fun evalRealConditions(evalResult: EvalResult): Mono<EvalResult> {
-        val superheat = getSuperHeat(evalResult.input.anyInputs) ?: return Mono.empty()
-        val refrigerant = getRefrigerant(evalResult.input.anyInputs) ?: return Mono.empty()
-        val evapTemp = getEvaporationTemperature(evalResult.input.anyInputs) ?: return Mono.empty()
+        val superheat =
+            getSuperHeat(evalResult.input.anyInputs) ?: return getMonoError("superheat not found", evalResult.input, id)
+        val refrigerant = getRefrigerant(evalResult.input.anyInputs) ?: return getMonoError(
+            "refrigerant not found",
+            evalResult.input,
+            id
+        )
+        val evapTemp = getEvaporationTemperature(evalResult.input.anyInputs)
+            ?: return getMonoError("evaporation temperature not found", evalResult.input, id)
 
-        val evaporationPressure = getEvaporationPressure(evalResult.resultValues.result) ?: return Mono.empty()
-        val condensingPressure = getCondensingPressure(evalResult.resultValues.result) ?: return Mono.empty()
-        val electricInput = getElectricPower(evalResult.resultValues.result) ?: return Mono.empty()
+        val evaporationPressure = getEvaporationPressure(evalResult.resultValues.result)
+            ?: return getMonoError("evaporation pressure not found", evalResult.input, id)
+        val condensingPressure = getCondensingPressure(evalResult.resultValues.result)
+            ?: return getMonoError("condensing pressure not found", evalResult.input, id)
+        val electricInput = getElectricPower(evalResult.resultValues.result) ?: return getMonoError(
+            "electric power not found",
+            evalResult.input,
+            id
+        )
 
         val inletTemp = evapTemp + 273.15 + superheat
         val densityInputRealConditions =
