@@ -10,7 +10,7 @@ data class EvalResult(
     @JsonProperty("input")
     val input: EvaluationInput,
     @JsonProperty("resultValues")
-    val resultValues: ResultValues,
+    val resultValues: List<ResultValues>,
     @JsonProperty("evalInfoMessage")
     val evalInfoMessage: String
 )

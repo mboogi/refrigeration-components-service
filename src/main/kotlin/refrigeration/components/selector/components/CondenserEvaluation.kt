@@ -37,6 +37,10 @@ class CondenserEvaluation(private val fluidPropertyService: FluidPropertyService
         return Flux.concat(result)
     }
 
+    override fun mapRequiredKeys(requiredKeyMapping: Map<String, String>) {
+        TODO("Not yet implemented")
+    }
+
     private fun evaluate(input: EvaluationInput): Mono<EvalResult> {
         val electricPower = getElectricPower(input.anyInputs) ?: return getMonoError("electric power not found",input,id)
         val refrigerationPower = getRefrigerationPower(input.anyInputs) ?: return getMonoError("refrigeration power not found",input,id)
@@ -50,6 +54,6 @@ class CondenserEvaluation(private val fluidPropertyService: FluidPropertyService
             mapOf<String, Any>(ComponentsConfig.condenserPower to power),
             mapOf()
         )
-        return EvalResult(EvalResultInfo.SUCCESS, input, resultValues, "Condenser Evaluation Finished")
+        return EvalResult(EvalResultInfo.SUCCESS, input, listOf(resultValues), "Condenser Evaluation Finished")
     }
 }

@@ -29,4 +29,8 @@ class ValveEvaluation : Evaluator {
     override fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
         TODO("Not yet implemented")
     }
+
+    override fun mapRequiredKeys(requiredKeyMapping: Map<String, String>) {
+        TODO("Not yet implemented")
+    }
 }

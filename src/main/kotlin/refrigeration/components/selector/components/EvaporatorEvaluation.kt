@@ -10,7 +10,7 @@ import refrigeration.components.selector.fluid.FluidPropertyService
 import refrigeration.components.selector.util.*
 
 @Service
-class EvaporatorEvaluation(private val fluidPropertyService: FluidPropertyService) : Evaluator {
+abstract class EvaporatorEvaluation(private val fluidPropertyService: FluidPropertyService) : Evaluator {
     companion object {
         val logger = LoggerFactory.getLogger(EvaporatorEvaluation::class.java)
     }
@@ -97,6 +97,6 @@ class EvaporatorEvaluation(private val fluidPropertyService: FluidPropertyServic
             mapOf<String, Any>(ComponentsConfig.evaporatorPower to condenserPower),
             mapOf()
         )
-        return EvalResult(EvalResultInfo.SUCCESS, input, resultValues, "Evaporator Evaluation Finished")
+        return EvalResult(EvalResultInfo.SUCCESS, input, listOf(resultValues), "Evaporator Evaluation Finished")
     }
 }
