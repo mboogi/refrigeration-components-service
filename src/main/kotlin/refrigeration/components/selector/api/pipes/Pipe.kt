@@ -5,10 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Pipe(
-    @JsonProperty("standard")
-    val standard: String,
+    @JsonProperty("id")
+    val id: Long,
     @JsonProperty("name")
     val name: String,
+    @JsonProperty("standard")
+    val standard: String,
     @JsonProperty("outerDiameter")
     val outerDiameter: Double,
     @JsonProperty("innerDiameter")

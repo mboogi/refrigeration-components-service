@@ -9,14 +9,13 @@ import refrigeration.components.selector.api.EvalResult
 import refrigeration.components.selector.api.EvalResultInfo
 import refrigeration.components.selector.api.EvaluationInput
 import refrigeration.components.selector.api.ResultValues
-import refrigeration.components.selector.config.polynomials.db.PolynomialCoefficientsEntity
-import refrigeration.components.selector.config.polynomials.db.PolynomialSearchResult
 import refrigeration.components.selector.config.polynomials.crud.PolynomialCoefficientsService
 import refrigeration.components.selector.config.polynomials.crud.PolynomialGroups
 import refrigeration.components.selector.config.polynomials.crud.PolynomialSearchService
+import refrigeration.components.selector.config.polynomials.db.PolynomialCoefficientsEntity
+import refrigeration.components.selector.config.polynomials.db.PolynomialSearchResult
 import refrigeration.components.selector.util.*
 import java.math.BigDecimal
-import kotlin.reflect.KClass
 
 class PolynomialEvaluationService(
     private val purposeName: String,
@@ -51,18 +50,21 @@ class PolynomialEvaluationService(
 
     private fun errorEvalResult(text: String, input: EvaluationInput): EvalResult {
         val resultValues = ResultValues(purposeName, mapOf(), mapOf())
-        return EvalResult(EvalResultInfo.FAILURE, input, resultValues, text)
+        return EvalResult(EvalResultInfo.FAILURE, input, listOf(resultValues), text)
     }
 
     private fun evaluate(input: EvaluationInput): Mono<EvalResult> {
         val refrigerantErrorMsg = "refrigerant could not be found"
-        val refrigerant = getRefrigerant(input.anyInputs) ?: return getMonoError(refrigerantErrorMsg, input, purposeName)
+        val refrigerant =
+            getRefrigerant(input.anyInputs) ?: return getMonoError(refrigerantErrorMsg, input, purposeName)
 
         val evapTempErrorMsg = "evap temp could not be found"
-        val evapTemp = getEvaporationTemperature(input.anyInputs) ?: return getMonoError(evapTempErrorMsg, input, purposeName)
+        val evapTemp =
+            getEvaporationTemperature(input.anyInputs) ?: return getMonoError(evapTempErrorMsg, input, purposeName)
 
         val condTempErrorMsg = "cond temp could not be found"
-        val condensingTemp = getCondensingTemperature(input.anyInputs) ?: return getMonoError(condTempErrorMsg, input, purposeName)
+        val condensingTemp =
+            getCondensingTemperature(input.anyInputs) ?: return getMonoError(condTempErrorMsg, input, purposeName)
 
         val capacityErrorMsg = "capacity could not be found"
         val capacity = getCapacity(input.anyInputs) ?: return getMonoError(capacityErrorMsg, input, purposeName)
@@ -71,10 +73,12 @@ class PolynomialEvaluationService(
         val frequency = getFrequency(input.anyInputs) ?: return getMonoError(frequencyErrorMsg, input, purposeName)
 
         val transCriticalErrorMsg = "transcricital operation type could not be found"
-        val transCritical = getTransCritical(input.anyInputs) ?: return getMonoError(transCriticalErrorMsg, input, purposeName)
+        val transCritical =
+            getTransCritical(input.anyInputs) ?: return getMonoError(transCriticalErrorMsg, input, purposeName)
 
         val compressorTypeErrorMsg = "compressor type could not be found"
-        val compressorType = getCompressorType(input.anyInputs) ?: return getMonoError(compressorTypeErrorMsg, input, purposeName)
+        val compressorType =
+            getCompressorType(input.anyInputs) ?: return getMonoError(compressorTypeErrorMsg, input, purposeName)
 
         val polynomialGroup =
             service.getPolynomialGroups(compressorType, refrigerant, capacity, frequency, transCritical, purposeName)
@@ -143,18 +147,19 @@ class PolynomialEvaluationService(
                 )
                 Mono.just(result)
             }
-        val resultsMapping = mapOf(ComponentsConfig.evalValue to Double::class)
+        val evalValueType = Double::class.simpleName ?: throw RuntimeException("eval value qualified name could not be found")
+        val resultsMapping = mapOf(ComponentsConfig.evalValue to evalValueType)
         return result.flatMap { getEvalResult(input, mapOf(ComponentsConfig.evalValue to it), resultsMapping) }
     }
 
     private fun getEvalResult(
         input: EvaluationInput,
         resultsMap: Map<String, Any>,
-        resultsMapping: Map<String, KClass<*>>
+        resultsMapping: Map<String, String>
     ): Mono<EvalResult> {
         val resultValues = ResultValues(purposeName, resultsMap, resultsMapping)
         val result =
-            EvalResult(EvalResultInfo.SUCCESS, input, resultValues, "successfully evaluated $purposeName")
+            EvalResult(EvalResultInfo.SUCCESS, input, listOf(resultValues), "successfully evaluated $purposeName")
         return Mono.just(result)
     }
 

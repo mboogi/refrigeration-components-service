@@ -13,7 +13,6 @@ import refrigeration.components.selector.config.polynomials.eval.PolynomialEvalu
 import refrigeration.components.selector.fluid.FluidPropertyService
 import refrigeration.components.selector.util.*
 import java.math.BigDecimal
-import kotlin.reflect.KClass
 
 @Service
 class CompressorEvaluation(
@@ -68,6 +67,37 @@ class CompressorEvaluation(
 
     override fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
         return Flux.fromIterable(input).flatMap { evaluate(it) }
+    }
+
+    override fun outputValues(): Set<String> {
+        return setOf(
+            ComponentsConfig.volumeFlow,
+            ComponentsConfig.massFlowKeyStandard,
+            ComponentsConfig.electricPowerKey,
+            ComponentsConfig.densityAtInletStandardKey,
+            ComponentsConfig.enthalpyAtInletStandardKey,
+            ComponentsConfig.evaporationPressureKey,
+            ComponentsConfig.condensingPressureKey,
+            ComponentsConfig.endEnthalpyRealConditions,
+            ComponentsConfig.massFlowRealKeyStandard,
+            ComponentsConfig.compressorOutletTemperature
+        )
+    }
+
+    override fun outputTypes(): Map<String, String> {
+        val doubleType = Double::class.simpleName ?: throw RuntimeException("Double type simple name not found")
+        return mapOf(
+            ComponentsConfig.volumeFlow to doubleType,
+            ComponentsConfig.massFlowKeyStandard to doubleType,
+            ComponentsConfig.electricPowerKey to doubleType,
+            ComponentsConfig.densityAtInletStandardKey to doubleType,
+            ComponentsConfig.enthalpyAtInletStandardKey to doubleType,
+            ComponentsConfig.evaporationPressureKey to doubleType,
+            ComponentsConfig.condensingPressureKey to doubleType,
+            ComponentsConfig.endEnthalpyRealConditions to doubleType,
+            ComponentsConfig.massFlowRealKeyStandard to doubleType,
+            ComponentsConfig.compressorOutletTemperature to doubleType
+        )
     }
 
     override fun mapRequiredKeys(requiredKeyMapping: Map<String, String>) {
@@ -174,18 +204,8 @@ class CompressorEvaluation(
         newResultMap[ComponentsConfig.endEnthalpyRealConditions] = endEnthalpy
         newResultMap[ComponentsConfig.massFlowRealKeyStandard] = massFlowRealConditions
         newResultMap[ComponentsConfig.compressorOutletTemperature] = compressorOutletTemperature
-        val oldResultsMapping = evalResult.resultValues.first()?.resultValuesMapping
-
-        val newResultsMapping = mutableMapOf<String, KClass<*>>()
-//        newResultsMapping[ComponentsConfig.endEnthalpyRealConditions] = Double::class
-//        newResultsMapping[ComponentsConfig.massFlowRealKeyStandard] = Double::class
-//        newResultsMapping[ComponentsConfig.compressorOutletTemperature] = Double::class
-//        newResultsMapping.putAll(oldResultsMapping)
-        val resultValues = ResultValues(evalResult.resultValues.first()?.id, newResultMap, newResultsMapping)
-        val evalResultAppend =
-            EvalResult(evalResult.evalInfo, evalResult.input, listOf(resultValues), evalResult.evalInfoMessage)
-
-        return evalResultAppend
+        val resultValues = ResultValues(evalResult.resultValues.first()?.id, newResultMap, outputTypes())
+        return EvalResult(evalResult.evalInfo, evalResult.input, listOf(resultValues), evalResult.evalInfoMessage)
     }
 
     private fun enthalpyDifference(electricInput: Double, massFlowRealConditions: Double): Double {

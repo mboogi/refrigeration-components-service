@@ -7,6 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import refrigeration.components.selector.api.polynomials.PolynomialCoefficientRequest
+import refrigeration.components.selector.config.pipes.db.PipeEntity
 import java.io.File
 
 class TestDataProvider {
@@ -32,6 +33,12 @@ class TestDataProvider {
     fun getPolynomialCoefficientRequests(name: String): List<PolynomialCoefficientRequest> {
         return mapper.readValue(readFile(name), object : TypeReference<List<PolynomialCoefficientRequest>>() {})
     }
+
+    fun getPipes(name: String): List<PipeEntity> {
+        return mapper.readValue(readFile(name), object : TypeReference<List<PipeEntity>>() {})
+    }
+
+
 
     private fun readFile(name: String): File {
         val resourceLocation = TestDataProvider::class.java.classLoader.getResource("data/$name")

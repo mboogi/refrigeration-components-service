@@ -31,41 +31,29 @@ class SingleStageCycle(private val evaluators: List<Evaluator>) : Evaluator {
         return Flux.fromIterable(input).flatMap { evaluators(it) }
     }
 
+    override fun outputValues(): Set<String> {
+        return setOf()
+    }
+
+    override fun outputTypes(): Map<String, String> {
+        return mapOf()
+    }
+
     override fun mapRequiredKeys(requiredKeyMapping: Map<String, String>) {
         TODO("Not yet implemented")
-    }
-//
-//    private fun evaluate(input: EvaluationInput, evaluators: List<Evaluator>, id: String) {
-//        val resutValues = ResultValues(id, mapOf(), mapOf())
-//        val initialResult = EvalResult(EvalResultInfo.WARNING, input, listOf(resutValues), "initial result")
-//        return evaluators()
-//    }
-
-    private fun evalChain(
-        previous: Mono<EvalResult>,
-        evaluator: Evaluator,
-        input: EvaluationInput,
-        evaluationContext: EvaluationContext
-    ) {
-        previous
-            .map {
-                getInputForRequiredKeys(
-                    combineInputAndResult(input, it, "", evaluationContext),
-                    evaluator.getRequiredInputKeys()
-                )
-            }
-            .flatMap { evaluator.evaluate(listOf(input)).next() }
     }
 
     private fun evaluators(input: EvaluationInput): Mono<EvalResult> {
         val evaluationContext = EvaluationContext()
         val compressorEvaluator =
-            evaluators.firstOrNull { it.getName() == "CompressorEvaluation" } ?: return Mono.empty()
+            evaluators.filter { it.getName() == "CompressorEvaluation" }.firstOrNull() ?: return Mono.empty()
 
         val evaporatorEvaluator =
-            evaluators.firstOrNull { it.getName() == "EvaporatorEvaluation" } ?: return Mono.empty()
-        val condenserEvaluator = evaluators.firstOrNull { it.getName() == "CondenserEvaluation" } ?: return Mono.empty()
-        val valveEvaluation = evaluators.firstOrNull { it.getName() == "ValveEvaluation" } ?: return Mono.empty()
+            evaluators.filter { it.getName() == "EvaporatorEvaluation" }.firstOrNull() ?: return Mono.empty()
+        val condenserEvaluator =
+            evaluators.filter { it.getName() == "CondenserEvaluation" }.firstOrNull() ?: return Mono.empty()
+        val valveEvaluation =
+            evaluators.filter { it.getName() == "ValveEvaluation" }.firstOrNull() ?: return Mono.empty()
 
         val eval = compressorEvaluator
             .evaluate(listOf(input)).next()
@@ -86,20 +74,27 @@ class SingleStageCycle(private val evaluators: List<Evaluator>) : Evaluator {
             .map {
                 getInputForRequiredKeys(
                     combineInputAndResult(input, it, "condenser1", evaluationContext),
-                    valveEvaluation.getRequiredInputKeys()
+                    condenserEvaluator.getRequiredInputKeys()
                 )
             }
         val contextEvalList = listOf("compressor1", "evaporator1", "condenser1")
-        val contextResults =
-            contextEvalList.mapNotNull { evaluationContext.lookup<EvalResult>(it) }.map { it.resultValues }.flatten()
-        return eval.map { EvalResult(EvalResultInfo.SUCCESS, input, contextResults, "") }
+
+        return eval.map {
+            EvalResult(
+                EvalResultInfo.SUCCESS,
+                input,
+                getContextResults(evaluationContext, contextEvalList),
+                "Single Stage subcritical cycle evaluated"
+            )
+        }
     }
 
-    private fun mapEndResult(evalResult: EvalResult, context: EvaluationContext): EvalResult? {
-        val compressor = context.lookup<Pair<EvaluationInput, EvalResult>>("compressor1")
-        val evaporator = context.lookup<Pair<EvaluationInput, EvalResult>>("evaporator1")
-        val condenser = context.lookup<Pair<EvaluationInput, EvalResult>>("condenser1")
-        return null
+    private fun getContextResults(
+        evaluationContext: EvaluationContext,
+        contextEvalList: List<String>
+    ): List<ResultValues> {
+        return contextEvalList.mapNotNull { evaluationContext.lookup<Pair<EvaluationInput, EvalResult>>(it) }
+            .map { it.second }.map { it.resultValues }.flatten()
     }
 
     private fun combineInputAndResult(
@@ -108,12 +103,28 @@ class SingleStageCycle(private val evaluators: List<Evaluator>) : Evaluator {
         id: String,
         evaluationContext: EvaluationContext
     ): Map<String, Any> {
+        val previousKeysContext = evaluationContext.keys()
+        val previousValuesContext = previousKeysContext
+            .mapNotNull { evaluationContext.lookup<Pair<EvaluationInput, EvalResult>>(it) }
+            .map { it.second }
+            .map { it.resultValues }
+            .flatten()
+            .map { it.result }
+            .flatMap { it.entries }
+            .associate { it.key to it.value }
+
         val inputMap = input.anyInputs
-        val evalMap = evalResult.resultValues.first().result
+        val evalMap = changeId(evalResult, id).resultValues.first().result
         val combined = mutableMapOf<String, Any>()
         combined.putAll(inputMap)
         combined.putAll(evalMap)
-        evaluationContext.bind(id, Pair(input, evalResult))
+        combined.putAll(previousValuesContext)
+        evaluationContext.bind(id, Pair(input, changeId(evalResult, id)))
         return combined
+    }
+
+    private fun changeId(evalResult: EvalResult, id: String): EvalResult {
+        val resultValues = evalResult.resultValues.map { ResultValues(id, it.result, it.resultValuesMapping) }
+        return EvalResult(evalResult.evalInfo, evalResult.input, resultValues, evalResult.evalInfoMessage)
     }
 }

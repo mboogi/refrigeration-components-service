@@ -10,6 +10,8 @@ interface Evaluator {
     fun getName(): String
     fun getRequiredInputKeys(): Set<String>
     fun evaluate(input: List<EvaluationInput>): Flux<EvalResult>
+    fun outputValues(): Set<String>
+    fun outputTypes(): Map<String, String>
 
     /** When for example this evaluation needs key named FIRST as * an input which is a key named SECOND used in previous evaluation
      * than it should map * */

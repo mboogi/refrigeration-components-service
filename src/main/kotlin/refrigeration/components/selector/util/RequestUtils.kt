@@ -75,21 +75,13 @@ fun getSubCool(input: Map<String, Any>): Double? {
 
 fun errorEvalResult(text: String, input: EvaluationInput, id: String): EvalResult {
     val result = ResultValues(id, mapOf(), mapOf())
-    return EvalResult(EvalResultInfo.FAILURE, input, result, text)
+    return EvalResult(EvalResultInfo.FAILURE, input, listOf(result), text)
 }
 
 fun getMonoError(msg: String, input: EvaluationInput, id: String): Mono<EvalResult> {
     return Mono.just(errorEvalResult(msg, input, id))
 }
 
-fun <T> getValueForKey(input: EvaluationInput, evalResult: EvalResult, key: String): T? {
-    val keyFromInput = input.anyInputs[key] as? T
-    if (keyFromInput != null) return keyFromInput
-    val keyFromResult = evalResult.resultValues.result[key] as? T
-    if (keyFromResult != null) return keyFromResult
-    return null
-}
-
 fun <T> getValueForKey(values: Map<String, Any>, key: String): T? {
-    return values[key] as? T
+    return values[key] as? T?
 }

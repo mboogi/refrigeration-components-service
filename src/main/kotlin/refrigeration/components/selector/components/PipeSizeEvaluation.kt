@@ -1,9 +1,13 @@
 package refrigeration.components.selector.components
 
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import refrigeration.components.selector.ComponentsConfig
 import refrigeration.components.selector.api.EvalResult
 import refrigeration.components.selector.api.EvaluationInput
 import refrigeration.components.selector.api.Evaluator
+import refrigeration.components.selector.util.getMonoError
+import refrigeration.components.selector.util.getValueForKey
 
 class PipeSizeEvaluation() : Evaluator {
     override var id: String = "default"
@@ -25,6 +29,36 @@ class PipeSizeEvaluation() : Evaluator {
     }
 
     override fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
+        return Flux.empty()
+    }
+
+    fun evaluate(input: EvaluationInput): Mono<EvalResult> {
+        val materialError = "no pipe material found"
+        val volumeFlowError = "no volume flow found"
+        val material =
+            getValueForKey<String>(input.anyInputs, ComponentsConfig.pipeMaterial)
+                ?: return getMonoError(materialError, input, id)
+        val volumeFlow = getValueForKey<Double>(input.anyInputs, ComponentsConfig.volumeFlow)
+            ?: return getMonoError(volumeFlowError, input, id)
+
+        val maxVelocityMainSuction = getValueForKey<Double>(input.anyInputs, ComponentsConfig.maxVelocitySuction)
+        val maxVelocityMainDischarge = getValueForKey<Double>(input.anyInputs, ComponentsConfig.maxVelocityDischarge)
+        val maxVelocityMainLiquid = getValueForKey<Double>(input.anyInputs, ComponentsConfig.maxVelocityLiquid)
+
+        val massFlowMainSuction = 10.0
+        val massFlowMainDischarge = 10.0
+        val massFlowMainLiquid = 10.0
+
+        val requiredInnerDiameterSuction=10.0
+        val requiredInnerDiameterDischarge=10.0
+        val requiredInnerDiameterLiquid=10.0
+    }
+
+    override fun outputValues(): Set<String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun outputTypes(): Map<String, String> {
         TODO("Not yet implemented")
     }
 

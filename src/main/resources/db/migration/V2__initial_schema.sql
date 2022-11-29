@@ -69,3 +69,14 @@ CREATE VIEW polynomial_mappings_view as
         left  join frequency_polynomial_mapping as f on z.polynomial_id=f.polynomial_id
         left join polynomial_type as pt on f.polynomial_id=pt.polynomial_id
         left join operation_type_polynomial_mapping as ot on pt.polynomial_id=ot.polynomial_id;
+
+
+CREATE TABLE hydraulic_pipe(
+    id              SERIAL PRIMARY KEY,
+    name            VARCHAR(255),
+    standard        VARCHAR(255)    NOT NULL,
+    outer_diameter  DOUBLE   PRECISION NOT NULL,
+    inner_diameter  DOUBLE   PRECISION NOT NULL,
+    material        VARCHAR(255)    NOT NULL,
+    max_pressure    DOUBLE   PRECISION NOT NULL
+);

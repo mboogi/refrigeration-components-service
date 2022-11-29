@@ -7,6 +7,7 @@ import refrigeration.components.selector.api.pipes.Pipe
 @Table(name = "hydraulic_pipe")
 data class PipeEntity(
     @Id
+    val id: Long,
     val name: String,
     val standard: String,
     val outerDiameter: Double,
@@ -14,12 +15,12 @@ data class PipeEntity(
     val material: String,
     val maxPressure: Double
 ) {
-    fun convert() = Pipe(name, standard, outerDiameter, innerDiameter, material, maxPressure)
+    fun convert() = Pipe(id, name, standard, outerDiameter, innerDiameter, material, maxPressure)
 
     companion object {
         fun convert(request: Pipe): PipeEntity {
             return PipeEntity(
-
+                0L,
                 request.name,
                 request.standard,
                 request.outerDiameter,
