@@ -26,4 +26,8 @@ class PipeService(private val pipeEntityRepository: PipeEntityRepository) {
     fun findByInnerDiameterBetween(lowerValue: Double, upperValue: Double): Flux<PipeEntity> {
         return pipeEntityRepository.findByInnerDiameterBetween(lowerValue, upperValue)
     }
+
+    fun findByInnerDiameterBetweenAndMaterial(lowerValue: Double, upperValue: Double, material: String): Flux<PipeEntity> {
+        return pipeEntityRepository.findByInnerDiameterBetweenAndMaterial(lowerValue, upperValue, material)
+    }
 }

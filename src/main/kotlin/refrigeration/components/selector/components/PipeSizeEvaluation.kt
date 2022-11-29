@@ -1,15 +1,17 @@
 package refrigeration.components.selector.components
 
+import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import refrigeration.components.selector.ComponentsConfig
 import refrigeration.components.selector.api.EvalResult
 import refrigeration.components.selector.api.EvaluationInput
 import refrigeration.components.selector.api.Evaluator
+import refrigeration.components.selector.config.pipes.crud.PipeService
 import refrigeration.components.selector.util.getMonoError
 import refrigeration.components.selector.util.getValueForKey
-
-class PipeSizeEvaluation() : Evaluator {
+@Service
+class PipeSizeEvaluation(private val pipeService: PipeService) : Evaluator {
     override var id: String = "default"
 
     override fun setUniqueId(id: String) {
@@ -52,6 +54,8 @@ class PipeSizeEvaluation() : Evaluator {
         val requiredInnerDiameterSuction=10.0
         val requiredInnerDiameterDischarge=10.0
         val requiredInnerDiameterLiquid=10.0
+
+       return Mono.empty()
     }
 
     override fun outputValues(): Set<String> {
