@@ -4,14 +4,15 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import refrigeration.components.selector.ComponentsConfig
-import refrigeration.components.selector.api.EvalResult
-import refrigeration.components.selector.api.EvaluationInput
-import refrigeration.components.selector.api.Evaluator
+import refrigeration.components.selector.api.*
 import refrigeration.components.selector.config.pipes.crud.PipeService
+import refrigeration.components.selector.config.pipes.db.PipeEntity
 import refrigeration.components.selector.util.getMonoError
 import refrigeration.components.selector.util.getValueForKey
+
 @Service
 class PipeSizeEvaluation(private val pipeService: PipeService) : Evaluator {
+    val pipeUtilities = PipeUtilities()
     override var id: String = "default"
 
     override fun setUniqueId(id: String) {
@@ -43,19 +44,63 @@ class PipeSizeEvaluation(private val pipeService: PipeService) : Evaluator {
         val volumeFlow = getValueForKey<Double>(input.anyInputs, ComponentsConfig.volumeFlow)
             ?: return getMonoError(volumeFlowError, input, id)
 
-        val maxVelocityMainSuction = getValueForKey<Double>(input.anyInputs, ComponentsConfig.maxVelocitySuction)
-        val maxVelocityMainDischarge = getValueForKey<Double>(input.anyInputs, ComponentsConfig.maxVelocityDischarge)
-        val maxVelocityMainLiquid = getValueForKey<Double>(input.anyInputs, ComponentsConfig.maxVelocityLiquid)
+        val maxVelocityMainSuction =
+            getValueForKey<Double>(input.anyInputs, ComponentsConfig.maxVelocitySuction) ?: return Mono.empty()
+        val maxVelocityMainDischarge =
+            getValueForKey<Double>(input.anyInputs, ComponentsConfig.maxVelocityDischarge) ?: return Mono.empty()
+        val maxVelocityMainLiquid =
+            getValueForKey<Double>(input.anyInputs, ComponentsConfig.maxVelocityLiquid) ?: return Mono.empty()
 
-        val massFlowMainSuction = 10.0
-        val massFlowMainDischarge = 10.0
-        val massFlowMainLiquid = 10.0
+        val suction = sizePipe(maxVelocityMainSuction, volumeFlow)
+        val discharge = sizePipe(maxVelocityMainDischarge, volumeFlow)
+        val liquid = sizePipe(maxVelocityMainLiquid, volumeFlow)
+        val pipeSizes = listOf(suction, discharge, liquid).sortedDescending()
+        val lowerLimit = pipeSizes.last()
+        val upperLimit = pipeSizes.first()
 
-        val requiredInnerDiameterSuction=10.0
-        val requiredInnerDiameterDischarge=10.0
-        val requiredInnerDiameterLiquid=10.0
+        val pipes = pipeService.findByInnerDiameterBetweenAndMaterial(lowerLimit, upperLimit, material)
+            .collectList()
+            .flatMap {
+                getPipes(suction, discharge, liquid, it, volumeFlow)
+            }
+            .map { EvalResult(EvalResultInfo.SUCCESS, input, listOf(ResultValues(id, it, mapOf())), "eval finished") }
+        return pipes
+    }
 
-       return Mono.empty()
+    fun getPipes(
+        suction: Double,
+        discharge: Double,
+        liquid: Double,
+        sizes: List<PipeEntity>,
+        volumeFlow: Double
+    ): Mono<Map<String, Any>> {
+        val suctionSelected = pipeUtilities.findBestMatch(suction, sizes)
+        val discharge = pipeUtilities.findBestMatch(discharge, sizes)
+        val liquid = pipeUtilities.findBestMatch(liquid, sizes)
+        val result = mutableMapOf<String, Double>()
+        if (suctionSelected != null) {
+            val suctionVelocityCalculated =
+                pipeUtilities.calculateRealVelocity(volumeFlow, suctionSelected.innerDiameter / 1000)
+            result[ComponentsConfig.suctionVelocity] = suctionVelocityCalculated
+            result[ComponentsConfig.suctionLineSize] = suctionSelected.outerDiameter
+        }
+        if (discharge != null) {
+            val dischargeVelocityCalculated =
+                pipeUtilities.calculateRealVelocity(volumeFlow, discharge.innerDiameter / 1000)
+            result[ComponentsConfig.dischargeVelocity] = dischargeVelocityCalculated
+            result[ComponentsConfig.dischargeLineSize] = discharge.outerDiameter
+        }
+
+        if (liquid != null) {
+            val liquidVelocityCalculated = pipeUtilities.calculateRealVelocity(volumeFlow, liquid.innerDiameter / 1000)
+            result[ComponentsConfig.liquidVelocity] = liquidVelocityCalculated
+            result[ComponentsConfig.liquidLineSize] = liquid.outerDiameter
+        }
+        return Mono.just(result)
+    }
+
+    fun sizePipe(maxVelocity: Double, volumeFlow: Double): Double {
+        return pipeUtilities.sizePipe(maxVelocity, volumeFlow)
     }
 
     override fun outputValues(): Set<String> {
