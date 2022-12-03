@@ -39,5 +39,7 @@ internal class PipeServiceTest : TestContainersSetup() {
         savePipes(service)
         val result = service.findByInnerDiameterBetween(4.0, 10.0).collectList().block()?.toList()
         println(result)
+        val result2 = service.findByInnerDiameterBetweenAndMaterial(4.0, 10.0,"WN 2.0090, EN CW024A").collectList().block()?.toList()
+        println(result2)
     }
 }

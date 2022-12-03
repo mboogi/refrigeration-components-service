@@ -32,7 +32,7 @@ class PipeSizeEvaluation(private val pipeService: PipeService) : Evaluator {
     }
 
     override fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
-        return Flux.empty()
+        return Flux.fromIterable(input).flatMap { evaluate(it) }
     }
 
     fun evaluate(input: EvaluationInput): Mono<EvalResult> {
@@ -54,17 +54,15 @@ class PipeSizeEvaluation(private val pipeService: PipeService) : Evaluator {
         val suction = sizePipe(maxVelocityMainSuction, volumeFlow)
         val discharge = sizePipe(maxVelocityMainDischarge, volumeFlow)
         val liquid = sizePipe(maxVelocityMainLiquid, volumeFlow)
-        val pipeSizes = listOf(suction, discharge, liquid).sortedDescending()
-        val lowerLimit = pipeSizes.last()
-        val upperLimit = pipeSizes.first()
+        val pipeSizes = listOf(suction, discharge, liquid).sortedDescending().map { it * 1000 }
+        val lowerLimit = pipeSizes.last().minus(5)
+        val upperLimit = pipeSizes.first().plus(5)
 
-        val pipes = pipeService.findByInnerDiameterBetweenAndMaterial(lowerLimit, upperLimit, material)
+        return pipeService.findByInnerDiameterBetweenAndMaterial(lowerLimit, upperLimit, material)
             .collectList()
             .flatMap {
-                getPipes(suction, discharge, liquid, it, volumeFlow)
+                getPipes(suction, discharge, liquid, it, volumeFlow, input)
             }
-            .map { EvalResult(EvalResultInfo.SUCCESS, input, listOf(ResultValues(id, it, mapOf())), "eval finished") }
-        return pipes
     }
 
     fun getPipes(
@@ -72,8 +70,8 @@ class PipeSizeEvaluation(private val pipeService: PipeService) : Evaluator {
         discharge: Double,
         liquid: Double,
         sizes: List<PipeEntity>,
-        volumeFlow: Double
-    ): Mono<Map<String, Any>> {
+        volumeFlow: Double, input: EvaluationInput
+    ): Mono<EvalResult> {
         val suctionSelected = pipeUtilities.findBestMatch(suction, sizes)
         val discharge = pipeUtilities.findBestMatch(discharge, sizes)
         val liquid = pipeUtilities.findBestMatch(liquid, sizes)
@@ -96,7 +94,9 @@ class PipeSizeEvaluation(private val pipeService: PipeService) : Evaluator {
             result[ComponentsConfig.liquidVelocity] = liquidVelocityCalculated
             result[ComponentsConfig.liquidLineSize] = liquid.outerDiameter
         }
-        return Mono.just(result)
+        val resultValues = listOf(ResultValues(id, result, mapOf()))
+        val evalResult = EvalResult(EvalResultInfo.SUCCESS, input, resultValues, "")
+        return Mono.just(evalResult)
     }
 
     fun sizePipe(maxVelocity: Double, volumeFlow: Double): Double {
