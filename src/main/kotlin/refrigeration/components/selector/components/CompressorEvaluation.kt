@@ -100,7 +100,7 @@ class CompressorEvaluation(
         )
     }
 
-    override fun mapRequiredKeys(requiredKeyMapping: Map<String, String>) {
+    override fun wireInputs(requiredKeyMapping: Map<String, String>) {
         TODO("Not yet implemented")
     }
 

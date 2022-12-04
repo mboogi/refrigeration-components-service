@@ -9,7 +9,7 @@ class PipeUtilities {
         val flowRate = volumeFlow * 4
         val velocity = maxVelocity * Math.PI * 3600
         val divided = flowRate / velocity
-        return sqrt(divided)
+        return sqrt(divided) * 1000
     }
 
     fun calculateRealVelocity(volumeFlow: Double, innerDiameter: Double): Double {
@@ -19,6 +19,7 @@ class PipeUtilities {
     }
 
     fun findBestMatch(requiredDiameter: Double, pipes: List<PipeEntity>): PipeEntity? {
-        return pipes.firstOrNull { it.innerDiameter >= requiredDiameter }
+        return pipes.sortedBy { it.innerDiameter }.firstOrNull { it.innerDiameter >= requiredDiameter }
+            ?: return pipes.sortedBy { it.innerDiameter }.lastOrNull { it.innerDiameter <= requiredDiameter }
     }
 }

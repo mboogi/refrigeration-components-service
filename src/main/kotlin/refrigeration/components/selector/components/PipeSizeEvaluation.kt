@@ -54,7 +54,7 @@ class PipeSizeEvaluation(private val pipeService: PipeService) : Evaluator {
         val suction = sizePipe(maxVelocityMainSuction, volumeFlow)
         val discharge = sizePipe(maxVelocityMainDischarge, volumeFlow)
         val liquid = sizePipe(maxVelocityMainLiquid, volumeFlow)
-        val pipeSizes = listOf(suction, discharge, liquid).sortedDescending().map { it * 1000 }
+        val pipeSizes = listOf(suction, discharge, liquid).sortedDescending().map { it }
         val lowerLimit = pipeSizes.last().minus(5)
         val upperLimit = pipeSizes.first().plus(5)
 
@@ -70,11 +70,12 @@ class PipeSizeEvaluation(private val pipeService: PipeService) : Evaluator {
         discharge: Double,
         liquid: Double,
         sizes: List<PipeEntity>,
-        volumeFlow: Double, input: EvaluationInput
+        volumeFlow: Double,
+        input: EvaluationInput
     ): Mono<EvalResult> {
         val suctionSelected = pipeUtilities.findBestMatch(suction, sizes)
-        val discharge = pipeUtilities.findBestMatch(discharge, sizes)
-        val liquid = pipeUtilities.findBestMatch(liquid, sizes)
+        val dischargeSelected = pipeUtilities.findBestMatch(discharge, sizes)
+        val liquidSelected = pipeUtilities.findBestMatch(liquid, sizes)
         val result = mutableMapOf<String, Double>()
         if (suctionSelected != null) {
             val suctionVelocityCalculated =
@@ -82,17 +83,17 @@ class PipeSizeEvaluation(private val pipeService: PipeService) : Evaluator {
             result[ComponentsConfig.suctionVelocity] = suctionVelocityCalculated
             result[ComponentsConfig.suctionLineSize] = suctionSelected.outerDiameter
         }
-        if (discharge != null) {
+        if (dischargeSelected != null) {
             val dischargeVelocityCalculated =
-                pipeUtilities.calculateRealVelocity(volumeFlow, discharge.innerDiameter / 1000)
+                pipeUtilities.calculateRealVelocity(volumeFlow, dischargeSelected.innerDiameter / 1000)
             result[ComponentsConfig.dischargeVelocity] = dischargeVelocityCalculated
-            result[ComponentsConfig.dischargeLineSize] = discharge.outerDiameter
+            result[ComponentsConfig.dischargeLineSize] = dischargeSelected.outerDiameter
         }
 
-        if (liquid != null) {
-            val liquidVelocityCalculated = pipeUtilities.calculateRealVelocity(volumeFlow, liquid.innerDiameter / 1000)
+        if (liquidSelected != null) {
+            val liquidVelocityCalculated = pipeUtilities.calculateRealVelocity(volumeFlow, liquidSelected.innerDiameter / 1000)
             result[ComponentsConfig.liquidVelocity] = liquidVelocityCalculated
-            result[ComponentsConfig.liquidLineSize] = liquid.outerDiameter
+            result[ComponentsConfig.liquidLineSize] = liquidSelected.outerDiameter
         }
         val resultValues = listOf(ResultValues(id, result, mapOf()))
         val evalResult = EvalResult(EvalResultInfo.SUCCESS, input, resultValues, "")
@@ -111,7 +112,7 @@ class PipeSizeEvaluation(private val pipeService: PipeService) : Evaluator {
         TODO("Not yet implemented")
     }
 
-    override fun mapRequiredKeys(requiredKeyMapping: Map<String, String>) {
+    override fun wireInputs(requiredKeyMapping: Map<String, String>) {
         TODO("Not yet implemented")
     }
 }

@@ -39,6 +39,6 @@ class ValveEvaluation : Evaluator {
         TODO("Not yet implemented")
     }
 
-    override fun mapRequiredKeys(requiredKeyMapping: Map<String, String>) {
+    override fun wireInputs(requiredKeyMapping: Map<String, String>) {
     }
 }

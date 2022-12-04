@@ -54,7 +54,7 @@ class EvaporatorEvaluation(private val fluidPropertyService: FluidPropertyServic
         return mapOf(ComponentsConfig.evaporatorPower to "Double")
     }
 
-    override fun mapRequiredKeys(requiredKeyMapping: Map<String, String>) {
+    override fun wireInputs(requiredKeyMapping: Map<String, String>) {
         TODO("Not yet implemented")
     }
 

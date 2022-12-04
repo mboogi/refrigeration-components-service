@@ -46,7 +46,7 @@ class CondenserEvaluation() : Evaluator {
         return mapOf(ComponentsConfig.condenserPower to "Double")
     }
 
-    override fun mapRequiredKeys(requiredKeyMapping: Map<String, String>) {
+    override fun wireInputs(requiredKeyMapping: Map<String, String>) {
         TODO("Not yet implemented")
     }
 
