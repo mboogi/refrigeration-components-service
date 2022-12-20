@@ -57,7 +57,6 @@ class LinearInterpolation {
         evaporationTemperature: Double,
         condensingTemperature: Double
     ): BigDecimal {
-        println(interpolationGroup)
         val x = BigDecimal.valueOf(evaporationTemperature)
         val lowX = interpolationGroup.lowX
         val highX = interpolationGroup.highX
