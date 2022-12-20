@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class ComponentsConfig {
     companion object {
+        const val valveName="valveName"
+        const val valveCapacity="valveCapacity"
         const val liquidVelocity="liquidVelocity"
         const val dischargeVelocity="dischargeVelocity"
         const val suctionVelocity="suctionVelocity"

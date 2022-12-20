@@ -13,7 +13,7 @@ import refrigeration.components.selector.TestDataProvider
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class PipeServiceTest : TestContainersSetup() {
-    private val testDataProvider = TestDataProvider()
+
 
     @Autowired
     private lateinit var service: PipeService

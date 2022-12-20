@@ -1,6 +1,6 @@
-package refrigeration.components.selector.config.polynomials.crud
+package refrigeration.components.selector.config
 
-data class PolynomialGroups<T>(
+data class InterpolationGroup<T>(
     val isEmpty: Boolean,
     val xValueName: String,
     val yValueName: String,
@@ -9,8 +9,8 @@ data class PolynomialGroups<T>(
     val lowY: Double?,
     val highY: Double?,
 
-    val lowXLowY: T,
-    val lowXHighY: T,
-    val highXLowY: T,
-    val highXHighY: T
+    val lowXLowY: T?,
+    val lowXHighY: T?,
+    val highXLowY: T?,
+    val highXHighY: T?
 )

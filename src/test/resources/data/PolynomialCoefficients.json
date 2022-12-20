@@ -16,7 +16,7 @@
     "capacity": 100,
     "frequency": 50,
     "transCritical": 0,
-    "description": "compressorType#refrigerantType#capacity#frequency#transCritical#REFRIGERATION_POWER"
+    "description": "4GE-30Y#R134a#100#50#0#REFRIGERATION_POWER"
   },
   {
     "polynomialType": "ELECTRIC_POWER",

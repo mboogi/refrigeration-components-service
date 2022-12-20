@@ -7,6 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import refrigeration.components.selector.api.polynomials.PolynomialCoefficientRequest
+import refrigeration.components.selector.api.valves.Valve
 import refrigeration.components.selector.config.pipes.db.PipeEntity
 import java.io.File
 
@@ -36,6 +37,9 @@ class TestDataProvider {
 
     fun getPipes(name: String): List<PipeEntity> {
         return mapper.readValue(readFile(name), object : TypeReference<List<PipeEntity>>() {})
+    }
+    fun getValves(name:String):List<Valve>{
+        return mapper.readValue(readFile(name), object : TypeReference<List<Valve>>() {})
     }
 
 

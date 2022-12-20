@@ -14,10 +14,11 @@ fun postgres(imageName: String, opts: JdbcDatabaseContainer<Nothing>.() -> Unit)
     PostgreSQLContainer(DockerImageName.parse(imageName)).apply { opts }
 
 open class TestContainersSetup {
-    private val testDataProvide = TestDataProvider()
+    protected val testDataProvider = TestDataProvider()
+
 
     protected fun saveCoefficients(service: PolynomialCoefficientsService) {
-        val result = testDataProvide.getPolynomialCoefficientRequests("PolynomialCoefficients.json")
+        val result = testDataProvider.getPolynomialCoefficientRequests("PolynomialCoefficients.json")
 
         service
             .save(result)
@@ -27,7 +28,7 @@ open class TestContainersSetup {
     }
 
     protected fun savePipes(service: PipeService) {
-        val result = testDataProvide.getPipes("PipeEntities.json").map { it.convert() }
+        val result = testDataProvider.getPipes("PipeEntities.json").map { it.convert() }
         service.saveAll(result)
             .collectList().block()
     }

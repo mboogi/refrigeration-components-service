@@ -8,6 +8,7 @@ import refrigeration.components.selector.config.polynomials.db.PolynomialCoeffic
 import refrigeration.components.selector.config.polynomials.db.PolynomialSearchResult
 
 @RestController
+@RequestMapping("api/config")
 class PolynomialSearchController(private val service: PolynomialCoefficientsService) : PolynomialApi {
 
     @GetMapping("polynomials")

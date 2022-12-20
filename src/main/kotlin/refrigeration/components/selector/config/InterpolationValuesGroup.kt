@@ -1,6 +1,6 @@
 package refrigeration.components.selector.config
 
-data class InterpolationGroup<T>(
+data class InterpolationValuesGroup<T>(
      val ids: List<Long>,
      val first: T?,
      val second: T?,

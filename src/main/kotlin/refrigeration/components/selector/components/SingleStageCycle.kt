@@ -74,10 +74,18 @@ class SingleStageCycle(private val evaluators: List<Evaluator>) : Evaluator {
             .map {
                 getInputForRequiredKeys(
                     combineInputAndResult(input, it, "condenser1", evaluationContext),
-                    condenserEvaluator.getRequiredInputKeys()
+                    valveEvaluation.getRequiredInputKeys()
                 )
             }
-        val contextEvalList = listOf("compressor1", "evaporator1", "condenser1")
+            .flatMap { valveEvaluation.evaluate(listOf(it)).next() }
+            .map {
+                getInputForRequiredKeys(
+                    combineInputAndResult(input, it, "valves", evaluationContext),
+                    valveEvaluation.getRequiredInputKeys()
+                )
+            }
+
+        val contextEvalList = listOf("compressor1", "evaporator1", "condenser1","valves")
 
         return eval.map {
             EvalResult(

@@ -9,8 +9,10 @@ import refrigeration.components.selector.api.EvalResult
 import refrigeration.components.selector.api.EvalResultInfo
 import refrigeration.components.selector.api.EvaluationInput
 import refrigeration.components.selector.api.ResultValues
+import refrigeration.components.selector.config.InterpolationValuesGroup
 import refrigeration.components.selector.config.polynomials.crud.PolynomialCoefficientsService
-import refrigeration.components.selector.config.polynomials.crud.PolynomialGroups
+import refrigeration.components.selector.config.InterpolationGroup
+import refrigeration.components.selector.config.polynomials.crud.PolynomialSearchGroup
 import refrigeration.components.selector.config.polynomials.crud.PolynomialSearchService
 import refrigeration.components.selector.config.polynomials.db.PolynomialCoefficientsEntity
 import refrigeration.components.selector.config.polynomials.db.PolynomialSearchResult
@@ -44,8 +46,7 @@ class PolynomialEvaluationService(
     }
 
     fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
-        val result = input.map { evaluate(it) }
-        return Flux.concat(result)
+        return  Flux.fromIterable(input).flatMap { evaluate(it) }
     }
 
     private fun errorEvalResult(text: String, input: EvaluationInput): EvalResult {
@@ -89,7 +90,7 @@ class PolynomialEvaluationService(
         val mappings = polynomialGroup
             .map { ids(it) }
             .flatMap {
-                coefficientsService.findPolynomialMappingByIdIn(it.polynomialIds)
+                coefficientsService.findPolynomialMappingByIdIn(it.ids)
                     .collectList()
                     .toMono()
                     .map { et -> Pair(it, et) }
@@ -103,10 +104,10 @@ class PolynomialEvaluationService(
 
         val capacityFrequencyGroup = polynomialGroup
             .flatMap {
-                val lowCapacity = getBigDecimalFromNullable(it.lowCapacity)
-                val highCapacity = getBigDecimalFromNullable(it.highCapacity)
-                val lowFrequency = getBigDecimalFromNullable(it.lowFrequency)
-                val highFrequency = getBigDecimalFromNullable(it.highFrequency)
+                val lowCapacity = getBigDecimalFromNullable(it.lowX)
+                val highCapacity = getBigDecimalFromNullable(it.highX)
+                val lowFrequency = getBigDecimalFromNullable(it.lowY)
+                val highFrequency = getBigDecimalFromNullable(it.highY)
                 Mono.just(CapacityFrequencyGroup(lowCapacity, highCapacity, lowFrequency, highFrequency))
             }
 
@@ -170,29 +171,23 @@ class PolynomialEvaluationService(
         val highFrequency: BigDecimal?
     )
 
-    private fun ids(polynomialGroup: PolynomialGroups): PolynomialsFound {
+    private fun ids(polynomialGroup: InterpolationGroup<PolynomialSearchGroup>): InterpolationValuesGroup<PolynomialSearchResult> {
         val ids = mutableListOf<Long>()
 
-        val first = polynomialGroup.lowCapacityLowFrequency.polynomial
-        val second = polynomialGroup.lowCapacityHighFrequency.polynomial
-        val third = polynomialGroup.highCapacityLowFrequency.polynomial
-        val fourth = polynomialGroup.highCapacityHighFrequency.polynomial
+        val first = polynomialGroup.lowXLowY?.polynomial
+        val second = polynomialGroup.lowXHighY?.polynomial
+        val third = polynomialGroup.highXLowY?.polynomial
+        val fourth = polynomialGroup.highXHighY?.polynomial
 
         if (first != null) ids.add(first.polynomialId)
         if (second != null) ids.add(second.polynomialId)
         if (third != null) ids.add(third.polynomialId)
         if (fourth != null) ids.add(fourth.polynomialId)
         val polynomials = ids.toList()
-        return PolynomialsFound(polynomials, first, second, third, fourth)
+        return InterpolationValuesGroup(polynomials, first, second, third, fourth)
     }
 
-    private data class PolynomialsFound(
-        val polynomialIds: List<Long>,
-        val first: PolynomialSearchResult?,
-        val second: PolynomialSearchResult?,
-        val third: PolynomialSearchResult?,
-        val fourth: PolynomialSearchResult?
-    )
+
 
     private fun evaluateMono(
         polynomial: PolynomialSearchResult?,

@@ -7,10 +7,24 @@ import reactor.core.publisher.Flux
 @Repository
 interface ValveRepository : ReactiveCrudRepository<ValveEntity, Long> {
 
-//    fun findByRefrigerantAndRefrigerationcapacityAndMaxpressureAndTypeAndFlowpattern(
-//        refrigerant: String,
-//        refrigerationCapacity:Double,
-//
-//
-//    ): Flux<ValveEntity>
+    fun findByRefrigerantAndRefrigerationCapacityBetween(
+        refrigerant: String,
+        refrigerationCapacityLower: Double,
+        refrigerationCapacityUpper: Double
+    ): Flux<ValveEntity>
+//AndCondensingTemperatureGreaterThanEqualAndEvaporatingTemperatureGreaterThanEqual
+    fun findByRefrigerantAndRefrigerationCapacityBetweenAndCondensingTemperatureGreaterThanEqualAndEvaporatingTemperatureGreaterThanEqual(
+        refrigerant: String,
+        refrigerationCapacityLower: Double,
+        refrigerationCapacityUpper: Double,
+        condensingTemperature:Double,
+        evaporatingTemperature:Double
+    ): Flux<ValveEntity>
+
+    fun findByRefrigerantAndRefrigerationCapacityBetweenAndValveName(
+        refrigerant: String,
+        refrigerationCapacityLower: Double,
+        refrigerationCapacityUpper: Double,
+        valveName: String
+    ): Flux<ValveEntity>
 }

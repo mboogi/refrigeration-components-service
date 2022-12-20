@@ -1,4 +1,6 @@
 spring:
+  codec:
+    max-in-memory-size: 500KB
   datasource:
     driverClassName: "org.postgresql.Driver"
     url: "jdbc:postgresql://127.0.0.0:5432/local"
