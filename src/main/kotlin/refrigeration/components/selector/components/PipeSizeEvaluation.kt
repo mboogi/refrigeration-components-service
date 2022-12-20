@@ -28,7 +28,14 @@ class PipeSizeEvaluation(private val pipeService: PipeService) : Evaluator {
     }
 
     override fun getRequiredInputKeys(): Set<String> {
-        TODO("Not yet implemented")
+        return setOf(
+            ComponentsConfig.pipeMaterial,
+            ComponentsConfig.maxVelocitySuction,
+            ComponentsConfig.maxVelocityDischarge,
+            ComponentsConfig.maxVelocityLiquid,
+            ComponentsConfig.volumeFlow
+        )
+
     }
 
     override fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
@@ -91,7 +98,8 @@ class PipeSizeEvaluation(private val pipeService: PipeService) : Evaluator {
         }
 
         if (liquidSelected != null) {
-            val liquidVelocityCalculated = pipeUtilities.calculateRealVelocity(volumeFlow, liquidSelected.innerDiameter / 1000)
+            val liquidVelocityCalculated =
+                pipeUtilities.calculateRealVelocity(volumeFlow, liquidSelected.innerDiameter / 1000)
             result[ComponentsConfig.liquidVelocity] = liquidVelocityCalculated
             result[ComponentsConfig.liquidLineSize] = liquidSelected.outerDiameter
         }

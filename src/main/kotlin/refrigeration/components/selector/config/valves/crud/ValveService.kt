@@ -17,7 +17,6 @@ import java.io.File
 @Service
 class ValveService(private val repo: ValveRepository) {
 
-
     private val interpolationService = LinearInterpolation()
 
     fun saveAll(entities: List<Valve>): Flux<Valve> {
@@ -46,7 +45,8 @@ class ValveService(private val repo: ValveRepository) {
             maxCapacity,
             minCondensing,
             minEvaporating
-        ).map { it.convert() }.collectList()
+        ).cache()
+            .map { it.convert() }.collectList()
 
     }
 
@@ -73,7 +73,6 @@ class ValveService(private val repo: ValveRepository) {
         val grouped = valve.groupBy { it.valveName }
             .map { createInterpolationGroups(it.value, condensingTemperature, evaporatingTemperature) }
             .map { getValue(it, evaporatingTemperature, condensingTemperature) }
-            .map { println("");it }
         return Mono.just(grouped)
     }
 
