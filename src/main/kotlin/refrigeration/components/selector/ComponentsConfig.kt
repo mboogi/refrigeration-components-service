@@ -5,7 +5,19 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class ComponentsConfig {
     companion object {
-        const val evaporatorPower="evaporatorPower"
+        const val valveName="valveName"
+        const val valveCapacity="valveCapacity"
+        const val liquidVelocity="liquidVelocity"
+        const val dischargeVelocity="dischargeVelocity"
+        const val suctionVelocity="suctionVelocity"
+        const val suctionLineSize = "suctionSize"
+        const val liquidLineSize = "liquidLineSize"
+        const val dischargeLineSize = "dischargeLineSize"
+        const val maxVelocitySuction = "maxVelocitySuctionLine"
+        const val maxVelocityLiquid = "maximalVelocityLiquidLine"
+        const val maxVelocityDischarge = "maximalVelocityDischargeLine"
+        const val pipeMaterial = "pipeMaterial"
+        const val evaporatorPower = "evaporatorPower"
         const val condenserPower = "condenserPower"
         const val refrigerantKey = "refrigerant"
         const val evapTempKey = "evapTemp"

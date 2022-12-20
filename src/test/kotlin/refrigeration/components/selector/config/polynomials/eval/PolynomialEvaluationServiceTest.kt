@@ -52,12 +52,12 @@ internal class PolynomialEvaluationServiceTest(
         val expectedResultValues = ResultValues(
             "",
             mapOf("evalValue" to 308.582513720247),
-            mapOf("evalValue" to Double::class)
+            mapOf("evalValue" to "Double")
         )
         val expectedResult = EvalResult(
             EvalResultInfo.SUCCESS,
             input,
-            expectedResultValues,
+            listOf(expectedResultValues),
             "successfully evaluated MASS_FLOW"
         )
         Assertions.assertEquals(expectedResult, result)
@@ -85,12 +85,12 @@ internal class PolynomialEvaluationServiceTest(
         val expectedResultValues = ResultValues(
             "",
             mapOf("evalValue" to 308.582513720247),
-            mapOf("evalValue" to Double::class)
+            mapOf("evalValue" to "Double")
         )
         val expectedResult = EvalResult(
             EvalResultInfo.SUCCESS,
             input,
-            expectedResultValues,
+            listOf(expectedResultValues),
             "successfully evaluated MASS_FLOW"
         )
         Assertions.assertEquals(expectedResult, result)
@@ -119,12 +119,12 @@ internal class PolynomialEvaluationServiceTest(
         val expectedResultValues = ResultValues(
             "",
             mapOf("evalValue" to 681.0096854515511),
-            mapOf("evalValue" to Double::class)
+            mapOf("evalValue" to "Double")
         )
         val expectedResult = EvalResult(
             EvalResultInfo.SUCCESS,
             input,
-            expectedResultValues,
+            listOf(expectedResultValues),
             "successfully evaluated MASS_FLOW"
         )
         Assertions.assertEquals(expectedResult, result)
@@ -153,12 +153,12 @@ internal class PolynomialEvaluationServiceTest(
         val expectedResultValues = ResultValues(
             "",
             mapOf("evalValue" to 462.8737705803499),
-            mapOf("evalValue" to Double::class)
+            mapOf("evalValue" to "Double")
         )
         val expectedResult = EvalResult(
             EvalResultInfo.SUCCESS,
             input,
-            expectedResultValues,
+            listOf(expectedResultValues),
             "successfully evaluated MASS_FLOW"
         )
         Assertions.assertEquals(expectedResult, result)
@@ -186,13 +186,13 @@ internal class PolynomialEvaluationServiceTest(
         val expectedResultValues = ResultValues(
             "",
             mapOf("evalValue" to 617.165027440467),
-            mapOf("evalValue" to Double::class),
+            mapOf("evalValue" to "Double"),
         )
         val result = evaluationService.evaluate(listOf(input)).blockFirst()
         val expectedResult = EvalResult(
             EvalResultInfo.SUCCESS,
             input,
-            expectedResultValues,
+            listOf(expectedResultValues),
             "successfully evaluated MASS_FLOW"
         )
 

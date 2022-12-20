@@ -20,8 +20,6 @@ internal class PolynomialCoefficientsServiceTest(
     val service: PolynomialCoefficientsService
 ) : TestContainersSetup() {
 
-    private val testDataProvider = TestDataProvider()
-
     companion object {
         val logger = LoggerFactory.getLogger(PolynomialCoefficientsServiceTest::class.java)
     }

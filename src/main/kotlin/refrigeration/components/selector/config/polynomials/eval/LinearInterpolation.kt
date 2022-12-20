@@ -1,12 +1,14 @@
 package refrigeration.components.selector.config.polynomials.eval
 
+import refrigeration.components.selector.api.valves.Valve
+import refrigeration.components.selector.config.InterpolationGroup
 import refrigeration.components.selector.config.polynomials.db.PolynomialCoefficientsEntity
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 class LinearInterpolation {
 
-    /** Simple linear interpolation returns Long.MaxValue in case that interpolation is not possible*/
+    /** Simple linear interpolation returns Long.MaxValue in case that interpolation is not possible, have to add image in addition*/
     fun linearInterpolation(
         y0: BigDecimal?,
         x0: BigDecimal?,
@@ -23,15 +25,8 @@ class LinearInterpolation {
         if ((y1 != null) and (y0 != null)) {
             if (y1!!.equals(y0)) return y0!!
         }
-        if (x1 != null) {
-            val result = (x1.equals(x0))
-        }
 
         return BigDecimal(Long.MAX_VALUE)
-    }
-
-    private fun checkLimits(): Boolean {
-        return false
     }
 
     private fun localLinearInterpolation(
@@ -55,6 +50,72 @@ class LinearInterpolation {
 
         val y = y0.plus(xDistanceMultipliedIntervals)
         return y
+    }
+
+    fun interpolate(
+        interpolationGroup: InterpolationGroup<Valve>,
+        evaporationTemperature: Double,
+        condensingTemperature: Double
+    ): BigDecimal {
+        println(interpolationGroup)
+        val x = BigDecimal.valueOf(evaporationTemperature)
+        val lowX = interpolationGroup.lowX
+        val highX = interpolationGroup.highX
+
+        val lowXLowY = interpolationGroup.lowXLowY
+        val highXLowY = interpolationGroup.highXLowY
+
+        val y0 = if (lowXLowY != null) {
+            BigDecimal.valueOf(lowXLowY.refrigerationCapacity)
+        } else {
+            null
+        }
+        val y1 = if (highXLowY != null) {
+            BigDecimal.valueOf(highXLowY.refrigerationCapacity)
+        } else {
+            null
+        }
+        val x0 = if (lowX != null) {
+            BigDecimal.valueOf(lowX)
+        } else {
+            null
+        }
+        val x1 = if (highX != null) {
+            BigDecimal.valueOf(highX)
+        } else {
+            null
+        }
+        val refCapacityLowCondensing = linearInterpolation(y0, x0, y1, x1, x)
+        val lowXHighY = interpolationGroup.lowXHighY
+        val highXHighY = interpolationGroup.highXHighY
+
+        val y02 = if (lowXHighY != null) {
+            BigDecimal.valueOf(lowXHighY.refrigerationCapacity)
+        } else {
+            null
+        }
+        val y12 = if (highXHighY != null) {
+            BigDecimal.valueOf(highXHighY.refrigerationCapacity)
+        } else {
+            null
+        }
+
+        val refCapacityHighCondensing = linearInterpolation(y02, x0, y12, x1, x)
+
+        val x01 = if (interpolationGroup.lowY != null) {
+            BigDecimal.valueOf(interpolationGroup.lowY)
+        } else {
+            null
+        }
+        val x11 = if (interpolationGroup.highY != null) {
+            BigDecimal.valueOf(interpolationGroup.highY)
+        } else {
+            null
+        }
+
+        val xCondensing = BigDecimal.valueOf(condensingTemperature)
+
+        return linearInterpolation(refCapacityLowCondensing, x01, refCapacityHighCondensing, x11, xCondensing)
     }
 
     fun evaluate(

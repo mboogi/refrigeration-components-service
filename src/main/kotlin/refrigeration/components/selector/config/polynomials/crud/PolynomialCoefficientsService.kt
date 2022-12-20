@@ -38,7 +38,6 @@ class PolynomialCoefficientsService(
         transCritical: Boolean,
         polynomialType: String
     ): Flux<PolynomialSearchResult> {
-        val start = System.currentTimeMillis()
         val result = polynomialSearchResult.findByCompressorTypeAndRefrigerantTypeAndTransCriticalAndPolynomialType(
             compressor,
             refrigerant,
@@ -46,8 +45,6 @@ class PolynomialCoefficientsService(
             polynomialType
         )
             .subscribeOn(Schedulers.fromExecutor(pool))
-        val end = System.currentTimeMillis()
-        logger.info("search duration ${(end - start)}")
         return result
     }
 

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toMono
+import refrigeration.components.selector.config.InterpolationGroup
 import refrigeration.components.selector.config.polynomials.db.PolynomialSearchResult
 import refrigeration.components.selector.pools.WorkerPool
 import refrigeration.components.selector.util.eq
@@ -22,9 +23,11 @@ class PolynomialSearchService(private val service: PolynomialCoefficientsService
         private val logger = LoggerFactory.getLogger(PolynomialSearchService::class.java)
     }
 
-    fun defaultPolynomialGroup(): PolynomialGroups {
-        return PolynomialGroups(
+    fun defaultPolynomialGroup(): InterpolationGroup<PolynomialSearchGroup> {
+        return InterpolationGroup(
             true,
+            "unknown",
+            "unknown",
             null,
             null,
             null,
@@ -43,7 +46,7 @@ class PolynomialSearchService(private val service: PolynomialCoefficientsService
         frequency: Double,
         transCritical: Boolean,
         polynomialType: String
-    ): Mono<PolynomialGroups> {
+    ): Mono<InterpolationGroup<PolynomialSearchGroup>> {
         logger.debug("$compressor $refrigerant $transCritical $polynomialType")
         val result =
             service
@@ -65,7 +68,7 @@ class PolynomialSearchService(private val service: PolynomialCoefficientsService
         capacity: Double,
         frequency: Double,
         polynomials: List<PolynomialSearchResult>
-    ): Mono<PolynomialGroups> {
+    ): Mono<InterpolationGroup<PolynomialSearchGroup>> {
         val lowCapacity =
             polynomials.sortedBy { it.capacity }.filter { it.capacity lte capacity }.map { it.capacity }.lastOrNull()
         val highCapacity =
@@ -101,8 +104,10 @@ class PolynomialSearchService(private val service: PolynomialCoefficientsService
         val highCapacityHighFrequencyGroup =
             PolynomialSearchGroup(highCapHighFreqGroupName, highCapacityHighFrequency)
 
-        val result = PolynomialGroups(
+        val result = InterpolationGroup(
             false,
+            "capacity",
+            "frequency",
             lowCapacity,
             highCapacity,
             lowFrequency,

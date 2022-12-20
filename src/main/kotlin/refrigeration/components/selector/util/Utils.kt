@@ -1,9 +1,13 @@
 package refrigeration.components.selector.util
 
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import refrigeration.components.selector.api.EvaluationInput
 import refrigeration.components.selector.api.polynomials.*
+import java.lang.Error
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.util.*
 
 class PolynomialCoefficientRequestUtil
 
@@ -180,3 +184,12 @@ fun getBigDecimalMonoFromNullable(value: Double?): Mono<BigDecimal> {
 fun getBigDecimalFromDouble(value: Double, scale: ScalePair): BigDecimal {
     return BigDecimal(value).setScale(scale.scale, scale.roundingMode)
 }
+
+fun getInputForRequiredKeys(values: Map<String, Any>, requiredKeys: Set<String>): EvaluationInput {
+    val inputMap = requiredKeys
+        .associateWith { getValueForKey<Any>(values, it) }
+        .filterValues { it != null }
+        .mapValues { it.value as Any }
+    return EvaluationInput("EvaporatorEvaluation", inputMap)
+}
+

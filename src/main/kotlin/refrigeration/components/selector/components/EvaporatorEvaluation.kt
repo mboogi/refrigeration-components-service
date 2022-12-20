@@ -43,19 +43,41 @@ class EvaporatorEvaluation(private val fluidPropertyService: FluidPropertyServic
     }
 
     override fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
-        val result = input.map { evaluate(it) }
-        return Flux.concat(result)
+        return Flux.fromIterable(input).flatMap { evaluate(it) }
+    }
+
+    override fun outputValues(): Set<String> {
+        return setOf(ComponentsConfig.evaporatorPower)
+    }
+
+    override fun outputTypes(): Map<String, String> {
+        return mapOf(ComponentsConfig.evaporatorPower to "Double")
+    }
+
+    override fun wireInputs(requiredKeyMapping: Map<String, String>) {
+        TODO("Not yet implemented")
     }
 
     private fun evaluate(input: EvaluationInput): Mono<EvalResult> {
-        val condensingPressure = getCondensingPressure(input.anyInputs) ?: return Mono.empty()
-        val condensingTemperature = getCondensingTemperature(input.anyInputs) ?: return Mono.empty()
-        val evaporationTemperature = getEvaporationTemperature(input.anyInputs) ?: return Mono.empty()
-        val evaporationPressure = getEvaporationPressure(input.anyInputs) ?: return Mono.empty()
-        val superHeat = getSuperHeat(input.anyInputs) ?: return Mono.empty()
-        val subCool = getSubCool(input.anyInputs) ?: return Mono.empty()
-        val massFlow = getRealMassFlow(input.anyInputs) ?: return Mono.empty()
-        val refrigerant = getRefrigerant(input.anyInputs) ?: return Mono.empty()
+        val condensingPressure =
+            getCondensingPressure(input.anyInputs) ?: return getMonoError("Condensing Pressure not found", input, id)
+        val condensingTemperature = getCondensingTemperature(input.anyInputs) ?: return getMonoError(
+            "Condensing Temperature not found",
+            input,
+            id
+        )
+        val evaporationTemperature = getEvaporationTemperature(input.anyInputs) ?: return getMonoError(
+            "Evaporation Temperature not found",
+            input,
+            id
+        )
+        val evaporationPressure =
+            getEvaporationPressure(input.anyInputs) ?: return getMonoError("Evaporation Pressure not found", input, id)
+        val superHeat = getSuperHeat(input.anyInputs) ?: return getMonoError("Superheat  not found", input, id)
+        val subCool = getSubCool(input.anyInputs) ?: return getMonoError("Sub-cool value  not found", input, id)
+        val massFlow =
+            getRealMassFlow(input.anyInputs) ?: return getMonoError("Mass flow real condition not found", input, id)
+        val refrigerant = getRefrigerant(input.anyInputs) ?: return getMonoError("Refrigerant not found", input, id)
 
         val enthalpyLiquid =
             fluidPropertyService.getLiquidEnthalpy(
@@ -85,6 +107,7 @@ class EvaporatorEvaluation(private val fluidPropertyService: FluidPropertyServic
 
         return result
     }
+
     private fun refrigerationPower(enthalpyOutlet: Double, enthalpyInlet: Double, massFlow: Double): Double {
         val result = (enthalpyOutlet - enthalpyInlet) / 1000 * (massFlow / 3600)
         logger.info("refrigeration power $result")
@@ -92,11 +115,12 @@ class EvaporatorEvaluation(private val fluidPropertyService: FluidPropertyServic
     }
 
     private fun getEvalResult(condenserPower: Double, input: EvaluationInput): EvalResult {
+        val evapType = Double::class.simpleName ?: throw RuntimeException("qualified name could not be found")
         val resultValues = ResultValues(
             id,
             mapOf<String, Any>(ComponentsConfig.evaporatorPower to condenserPower),
-            mapOf()
+            mapOf(ComponentsConfig.evaporatorPower to evapType)
         )
-        return EvalResult(EvalResultInfo.SUCCESS, input, resultValues, "Evaporator Evaluation Finished")
+        return EvalResult(EvalResultInfo.SUCCESS, input, listOf(resultValues), "Evaporator Evaluation Finished")
     }
 }

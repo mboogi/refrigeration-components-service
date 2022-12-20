@@ -13,7 +13,6 @@ import refrigeration.components.selector.config.polynomials.eval.PolynomialEvalu
 import refrigeration.components.selector.fluid.FluidPropertyService
 import refrigeration.components.selector.util.*
 import java.math.BigDecimal
-import kotlin.reflect.KClass
 
 @Service
 class CompressorEvaluation(
@@ -67,15 +66,49 @@ class CompressorEvaluation(
     }
 
     override fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
-        val monos = input.map { evaluate(it) }
-        return Flux.concat(monos)
+        return Flux.fromIterable(input).flatMap { evaluate(it) }
+    }
+
+    override fun outputValues(): Set<String> {
+        return setOf(
+            ComponentsConfig.volumeFlow,
+            ComponentsConfig.massFlowKeyStandard,
+            ComponentsConfig.electricPowerKey,
+            ComponentsConfig.densityAtInletStandardKey,
+            ComponentsConfig.enthalpyAtInletStandardKey,
+            ComponentsConfig.evaporationPressureKey,
+            ComponentsConfig.condensingPressureKey,
+            ComponentsConfig.endEnthalpyRealConditions,
+            ComponentsConfig.massFlowRealKeyStandard,
+            ComponentsConfig.compressorOutletTemperature
+        )
+    }
+
+    override fun outputTypes(): Map<String, String> {
+        val doubleType = Double::class.simpleName ?: throw RuntimeException("Double type simple name not found")
+        return mapOf(
+            ComponentsConfig.volumeFlow to doubleType,
+            ComponentsConfig.massFlowKeyStandard to doubleType,
+            ComponentsConfig.electricPowerKey to doubleType,
+            ComponentsConfig.densityAtInletStandardKey to doubleType,
+            ComponentsConfig.enthalpyAtInletStandardKey to doubleType,
+            ComponentsConfig.evaporationPressureKey to doubleType,
+            ComponentsConfig.condensingPressureKey to doubleType,
+            ComponentsConfig.endEnthalpyRealConditions to doubleType,
+            ComponentsConfig.massFlowRealKeyStandard to doubleType,
+            ComponentsConfig.compressorOutletTemperature to doubleType
+        )
+    }
+
+    override fun wireInputs(requiredKeyMapping: Map<String, String>) {
+        TODO("Not yet implemented")
     }
 
     fun evaluate(input: EvaluationInput): Mono<EvalResult> {
         val initialEval = initialEvaluation(input)
-        val superHeat = getSuperHeat(input.anyInputs) ?: return Mono.empty()
-        val subCool = getSubCool(input.anyInputs) ?: return Mono.empty()
-        if ((superHeat < 0.0) or (subCool < 0.0)) return Mono.empty()
+        val superHeat = getSuperHeat(input.anyInputs) ?: return getMonoError("superheat not found", input, id)
+        val subCool = getSubCool(input.anyInputs) ?: return getMonoError("subcool not found", input, id)
+        if ((superHeat < 0.0) or (subCool < 0.0)) return getMonoError("superheat or subcool lesser than 0.0", input, id)
         return realConditionsEvaluation(initialEval)
     }
 
@@ -84,20 +117,32 @@ class CompressorEvaluation(
     }
 
     private fun evalRealConditions(evalResult: EvalResult): Mono<EvalResult> {
-        val superheat = getSuperHeat(evalResult.input.anyInputs) ?: return Mono.empty()
-        val refrigerant = getRefrigerant(evalResult.input.anyInputs) ?: return Mono.empty()
-        val evapTemp = getEvaporationTemperature(evalResult.input.anyInputs) ?: return Mono.empty()
+        val superheat =
+            getSuperHeat(evalResult.input.anyInputs) ?: return getMonoError("superheat not found", evalResult.input, id)
+        val refrigerant = getRefrigerant(evalResult.input.anyInputs) ?: return getMonoError(
+            "refrigerant not found",
+            evalResult.input,
+            id
+        )
+        val evapTemp = getEvaporationTemperature(evalResult.input.anyInputs)
+            ?: return getMonoError("evaporation temperature not found", evalResult.input, id)
 
-        val evaporationPressure = getEvaporationPressure(evalResult.resultValues.result) ?: return Mono.empty()
-        val condensingPressure = getCondensingPressure(evalResult.resultValues.result) ?: return Mono.empty()
-        val electricInput = getElectricPower(evalResult.resultValues.result) ?: return Mono.empty()
+        val evaporationPressure = getEvaporationPressure(evalResult.resultValues.first()?.result)
+            ?: return getMonoError("evaporation pressure not found", evalResult.input, id)
+        val condensingPressure = getCondensingPressure(evalResult.resultValues.first()?.result)
+            ?: return getMonoError("condensing pressure not found", evalResult.input, id)
+        val electricInput = getElectricPower(evalResult.resultValues.first()?.result) ?: return getMonoError(
+            "electric power not found",
+            evalResult.input,
+            id
+        )
 
         val inletTemp = evapTemp + 273.15 + superheat
         val densityInputRealConditions =
             fluidsService.getVapourDensity(superheat, refrigerant, inletTemp, evaporationPressure)
         val enthalpyInputRealConditions =
             fluidsService.getVapourEnthalpy(superheat, refrigerant, inletTemp, evaporationPressure)
-        val volumeFlow = getVolumeFlow(evalResult.resultValues.result) ?: return Mono.empty()
+        val volumeFlow = getVolumeFlow(evalResult.resultValues.first()?.result) ?: return Mono.empty()
 
         val massFlowReal = densityInputRealConditions.flatMap { massFlowRealConditions(volumeFlow, it) }
 
@@ -153,24 +198,14 @@ class CompressorEvaluation(
         massFlowRealConditions: Double,
         compressorOutletTemperature: Double
     ): EvalResult {
-        val oldInputMap = evalResult.resultValues.result
+        val oldInputMap = evalResult.resultValues.first()?.result
         val newResultMap = mutableMapOf<String, Any>()
         newResultMap.putAll(oldInputMap)
         newResultMap[ComponentsConfig.endEnthalpyRealConditions] = endEnthalpy
         newResultMap[ComponentsConfig.massFlowRealKeyStandard] = massFlowRealConditions
         newResultMap[ComponentsConfig.compressorOutletTemperature] = compressorOutletTemperature
-        val oldResultsMapping = evalResult.resultValues.resultValuesMapping
-
-        val newResultsMapping = mutableMapOf<String, KClass<*>>()
-//        newResultsMapping[ComponentsConfig.endEnthalpyRealConditions] = Double::class
-//        newResultsMapping[ComponentsConfig.massFlowRealKeyStandard] = Double::class
-//        newResultsMapping[ComponentsConfig.compressorOutletTemperature] = Double::class
-//        newResultsMapping.putAll(oldResultsMapping)
-        val resultValues = ResultValues(evalResult.resultValues.id, newResultMap, newResultsMapping)
-        val evalResultAppend =
-            EvalResult(evalResult.evalInfo, evalResult.input, resultValues, evalResult.evalInfoMessage)
-
-        return evalResultAppend
+        val resultValues = ResultValues(evalResult.resultValues.first()?.id, newResultMap, outputTypes())
+        return EvalResult(evalResult.evalInfo, evalResult.input, listOf(resultValues), evalResult.evalInfoMessage)
     }
 
     private fun enthalpyDifference(electricInput: Double, massFlowRealConditions: Double): Double {
@@ -217,14 +252,15 @@ class CompressorEvaluation(
             Mono.zip(densityAtInlet, massFlow, enthalpyAtInlet, condensingPressure, evaporationPressure, electricPower)
                 .map { t ->
                     val density = t.t1
-                    val massFlowBigDecimal = t.t2.resultValues.result[ComponentsConfig.evalValue] as? BigDecimal
-                        ?: throw RuntimeException("mass flow value could not be calculated from eval result")
+                    val massFlowBigDecimal =
+                        t.t2.resultValues.first()?.result[ComponentsConfig.evalValue] as? BigDecimal
+                            ?: throw RuntimeException("mass flow value could not be calculated from eval result")
                     val massflowValue = (massFlowBigDecimal.toDouble())
                     val volumetricFlow = massflowValue.div(density)
                     val enthalpy = t.t3
                     val condensingPressure = t.t4
                     val evapPressure = t.t5
-                    val electricPower = t.t6.resultValues.result[ComponentsConfig.evalValue] as? BigDecimal
+                    val electricPower = t.t6.resultValues.first()?.result[ComponentsConfig.evalValue] as? BigDecimal
                         ?: throw RuntimeException("Electric Power value could not be calculated from eval result")
                     val electricPowerValue = electricPower.toDouble()
 
@@ -249,7 +285,7 @@ class CompressorEvaluation(
         return EvalResult(
             EvalResultInfo.SUCCESS,
             input,
-            getResultValues(compressorIO),
+            listOf(getResultValues(compressorIO)),
             "tempadkasdjas"
         )
     }

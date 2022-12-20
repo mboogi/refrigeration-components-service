@@ -8,15 +8,16 @@ import refrigeration.components.selector.api.EvaluationInput
 import refrigeration.components.selector.api.Evaluator
 
 @RestController
+@RequestMapping("api/eval")
 class EvaluatorController(private val evaluators: List<Evaluator>) {
 
-    @GetMapping("eval/names")
+    @GetMapping("/names")
     fun getEvaluators(): Flux<String> {
         val evaluators = evaluators.map { it.getName() }
         return Flux.fromIterable(evaluators)
     }
 
-    @PostMapping("eval/evaluation/{name}")
+    @PostMapping("/evaluation/{name}")
     fun evaluate(
         @RequestBody input: List<EvaluationInput>,
         @PathVariable("name") evaluatorName: String
@@ -27,7 +28,7 @@ class EvaluatorController(private val evaluators: List<Evaluator>) {
         return evaluator.evaluate(input)
     }
 
-    @GetMapping("eval/{name}/keys")
+    @GetMapping("/{name}/keys")
     fun getRequiredKeys(@PathVariable("name") evaluatorName: String): Mono<Set<String>> {
         val availableEvaluators = evaluators.filter { !it.privateEvaluation() }.groupBy { it.getName() }
         val evaluators = availableEvaluators[evaluatorName] ?: return Mono.empty()

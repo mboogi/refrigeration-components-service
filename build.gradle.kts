@@ -6,7 +6,7 @@ plugins {
     kotlin("jvm") version "1.6.21"
     kotlin("plugin.spring") version "1.6.21"
     id("jacoco")
-//    id("org.flywaydb.flyway") version "9.5.1"
+
 }
 
 group = "refrigeration.components.selector"

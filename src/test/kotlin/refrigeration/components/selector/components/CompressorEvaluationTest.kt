@@ -7,13 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.testcontainers.junit.jupiter.Testcontainers
 import refrigeration.components.selector.ComponentsConfig
+import refrigeration.components.selector.TestContainersSetup
 import refrigeration.components.selector.api.EvaluationInput
 import refrigeration.components.selector.config.polynomials.db.PolynomialTypesEnum
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @Testcontainers()
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class CompressorEvaluationTest /*: TestContainersSetup()*/ {
+internal class CompressorEvaluationTest : TestContainersSetup() {
     @Autowired
     private lateinit var mapper: ObjectMapper
 

@@ -2,12 +2,16 @@ package refrigeration.components.selector.components
 
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import refrigeration.components.selector.ComponentsConfig
 import refrigeration.components.selector.api.EvalResult
 import refrigeration.components.selector.api.EvaluationInput
 import refrigeration.components.selector.api.Evaluator
+import refrigeration.components.selector.config.valves.crud.ValveService
+import refrigeration.components.selector.util.*
 
 @Service
-class ValveEvaluation : Evaluator {
+class ValveEvaluation(private val valveService: ValveService) : Evaluator {
     override var id: String = "default"
 
     override fun setUniqueId(id: String) {
@@ -23,10 +27,46 @@ class ValveEvaluation : Evaluator {
     }
 
     override fun getRequiredInputKeys(): Set<String> {
-        TODO("Not yet implemented")
+        return setOf(
+            ComponentsConfig.refrigerantKey,
+            ComponentsConfig.evapTempKey,
+            ComponentsConfig.condTempKey,
+            ComponentsConfig.evaporatorPower
+        )
     }
 
     override fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
+        return Flux.fromIterable(input).flatMap { evaluate(it) }
+    }
+
+    private fun evaluate(evaluationInput: EvaluationInput): Mono<EvalResult> {
+        val refrigerant = getRefrigerant(evaluationInput.anyInputs) ?: return getMonoError(
+            "refrigerant not found",
+            evaluationInput,
+            id
+        )
+        val evapTemp = getEvaporationTemperature(evaluationInput.anyInputs)
+            ?: return getMonoError("evaporation temperature not found", evaluationInput, id)
+        val condensingTemperature = getCondensingTemperature(evaluationInput.anyInputs)
+            ?: return getMonoError("condensing temperature not found", evaluationInput, id)
+        val refrigerationPower =
+            getRefrigerationPower(evaluationInput.anyInputs)?.div(1000) ?: return getMonoError(
+                "refrigeration power not found",
+                evaluationInput,
+                id
+            )
+        return valveService.getValveBestMatchCandidate(refrigerant, refrigerationPower, condensingTemperature, evapTemp)
+            .map { it.convert(evaluationInput, id) }
+    }
+
+    override fun outputValues(): Set<String> {
         TODO("Not yet implemented")
+    }
+
+    override fun outputTypes(): Map<String, String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun wireInputs(requiredKeyMapping: Map<String, String>) {
     }
 }

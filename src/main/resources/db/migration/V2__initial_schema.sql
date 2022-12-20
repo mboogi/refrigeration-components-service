@@ -1,8 +1,3 @@
-CREATE TABLE book (
-    id SERIAL PRIMARY KEY,
-    title TEXT NOT NULL,
-    author TEXT NOT NULL
-);
 CREATE TABLE polynomial_coefficients(
     id          SERIAL PRIMARY KEY,
     description VARCHAR(255) NOT NULL,
@@ -69,3 +64,39 @@ CREATE VIEW polynomial_mappings_view as
         left  join frequency_polynomial_mapping as f on z.polynomial_id=f.polynomial_id
         left join polynomial_type as pt on f.polynomial_id=pt.polynomial_id
         left join operation_type_polynomial_mapping as ot on pt.polynomial_id=ot.polynomial_id;
+
+
+CREATE TABLE hydraulic_pipe(
+    id              SERIAL PRIMARY KEY,
+    name            VARCHAR(255),
+    standard        VARCHAR(255)    NOT NULL,
+    outer_diameter  DOUBLE   PRECISION NOT NULL,
+    inner_diameter  DOUBLE   PRECISION NOT NULL,
+    material        VARCHAR(255)    NOT NULL,
+    max_pressure    DOUBLE   PRECISION NOT NULL
+);
+
+CREATE TYPE  VALVE_TYPE as ENUM ('EXPANSION_VALVE', 'LIQUID_INJECTION', 'HOT_GAS_BYPASS', 'SUCTION_THROTTLING', 'HEAD_PRESSURE');
+CREATE TYPE  FLOW_PATTERN as ENUM ('UNI_FLOW', 'BI_FLOW');
+
+
+CREATE TABLE  valve_entity(
+    id                          SERIAL PRIMARY KEY,
+    refrigerant                 VARCHAR(255) NOT NULL,
+    valve_name                  VARCHAR(255) NOT NULL,
+    pressure_drop               DOUBLE PRECISION NOT NULL,
+    kvs                         DOUBLE PRECISION NOT NULL,
+    condensing_temperature      DOUBLE PRECISION NOT NULL,
+    evaporating_temperature     DOUBLE PRECISION NOT NULL,
+    max_pressure                DOUBLE PRECISION NOT NULL,
+    type                        VARCHAR(255) NOT NULL,
+    flow_pattern                VARCHAR(255) NOT NULL,
+    capacity_range              DOUBLE PRECISION NOT NULL,
+    inlet_connection            VARCHAR(255) NOT NULL,
+    outlet_connection           VARCHAR(255) NOT NULL,
+    max_liquid_temperature      DOUBLE PRECISION NOT NULL,
+    max_gas_temperature         DOUBLE PRECISION NOT NULL,
+    refrigeration_capacity      DOUBLE PRECISION NOT NULL
+)
+
+

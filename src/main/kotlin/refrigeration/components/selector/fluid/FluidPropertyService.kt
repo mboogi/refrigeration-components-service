@@ -37,7 +37,7 @@ class FluidPropertyService(
     }
 
     fun getWetVapourEnthalpy(temperature: Double, fluid: String): Mono<Double> {
-        val input = FluidPropertyRequest("H", "T", temperature, "Q", 1.0, fluid)
+        val input = FluidPropertyRequest("H", "T", temperature, "Q", 0.0, fluid)
         return client.getNumericProperty(input).subscribeOn(Schedulers.fromExecutor(pool))
     }
 
