@@ -35,6 +35,16 @@ class ValveEvaluation(private val valveService: ValveService) : Evaluator {
         )
     }
 
+    override fun keyValuesAndTypes(): Map<String, String> {
+        return mapOf(
+            ComponentsConfig.refrigerantKey to "String",
+            ComponentsConfig.evapTempKey to "Double",
+            ComponentsConfig.condTempKey to "Double",
+            ComponentsConfig.evaporatorPower to "Double"
+        )
+
+    }
+
     override fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
         return Flux.fromIterable(input).flatMap { evaluate(it) }
     }
@@ -69,4 +79,5 @@ class ValveEvaluation(private val valveService: ValveService) : Evaluator {
 
     override fun wireInputs(requiredKeyMapping: Map<String, String>) {
     }
+
 }

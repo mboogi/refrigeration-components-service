@@ -16,4 +16,6 @@ interface Evaluator {
     /** When for example this evaluation needs key named FIRST as * an input which is a key named SECOND used in previous evaluation
      * than it should map * */
     fun wireInputs(requiredKeyMapping: Map<String, String>)
+
+    fun keyValuesAndTypes():Map<String,String>
 }
