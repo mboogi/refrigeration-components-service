@@ -24,3 +24,8 @@ logging:
   level:
     org:
       flywaydb=DEBUG:
+#springdoc:
+#  api-docs:
+#    path: "/helloWorld/swagger/swagger.json"
+#  swagger-ui:
+#    path: "/helloWorld/swagger"
