@@ -41,4 +41,14 @@ class EvaluatorController(private val evaluators: List<Evaluator>) {
         val keys = evaluator.getRequiredInputKeys()
         return Mono.just(keys)
     }
+
+    @ApiOperation("required keys with respective types for named evaluator")
+    @GetMapping("/{name}/form-values")
+    fun getFormValues(@PathVariable("name") evaluatorName: String): Map<String,String> {
+        val availableEvaluators = evaluators.filter { !it.privateEvaluation() }.groupBy { it.getName() }
+        val evaluators = availableEvaluators[evaluatorName] ?: return emptyMap()
+        val evaluator = evaluators.firstOrNull() ?: return emptyMap()
+        val keys = evaluator.keyValuesAndTypes()
+        return keys
+    }
 }

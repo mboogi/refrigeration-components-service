@@ -38,6 +38,16 @@ class PipeSizeEvaluation(private val pipeService: PipeService) : Evaluator {
 
     }
 
+    override fun keyValuesAndTypes(): Map<String, String> {
+        return mapOf(
+            ComponentsConfig.pipeMaterial to "String",
+            ComponentsConfig.maxVelocitySuction to "Double",
+            ComponentsConfig.maxVelocityDischarge to "Double",
+            ComponentsConfig.maxVelocityLiquid to "Double",
+            ComponentsConfig.volumeFlow to "Double"
+        )
+    }
+
     override fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
         return Flux.fromIterable(input).flatMap { evaluate(it) }
     }
@@ -123,4 +133,5 @@ class PipeSizeEvaluation(private val pipeService: PipeService) : Evaluator {
     override fun wireInputs(requiredKeyMapping: Map<String, String>) {
         TODO("Not yet implemented")
     }
+
 }

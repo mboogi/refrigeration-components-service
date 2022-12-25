@@ -43,6 +43,10 @@ class SingleStageCycle(private val evaluators: List<Evaluator>) : Evaluator {
         TODO("Not yet implemented")
     }
 
+    override fun keyValuesAndTypes(): Map<String, String> {
+        TODO("Not yet implemented")
+    }
+
     private fun evaluators(input: EvaluationInput): Mono<EvalResult> {
         val evaluationContext = EvaluationContext()
         val compressorEvaluator =

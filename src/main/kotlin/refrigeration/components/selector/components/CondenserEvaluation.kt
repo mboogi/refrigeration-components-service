@@ -50,6 +50,13 @@ class CondenserEvaluation() : Evaluator {
         TODO("Not yet implemented")
     }
 
+    override fun keyValuesAndTypes(): Map<String, String> {
+        return mapOf(
+            ComponentsConfig.electricPowerKey to "Double",
+            ComponentsConfig.evaporatorPower to "Double"
+        )
+    }
+
     private fun evaluate(input: EvaluationInput): Mono<EvalResult> {
         val electricPower =
             getElectricPower(input.anyInputs) ?: return getMonoError("electric power not found", input, id)
@@ -60,7 +67,8 @@ class CondenserEvaluation() : Evaluator {
     }
 
     private fun getEvalResult(power: Double, input: EvaluationInput): EvalResult {
-        val condensingPowerType = Double::class.simpleName ?: throw RuntimeException("qualified name could not be found")
+        val condensingPowerType =
+            Double::class.simpleName ?: throw RuntimeException("qualified name could not be found")
         val resultValues = ResultValues(
             id,
             mapOf<String, Any>(ComponentsConfig.condenserPower to power),

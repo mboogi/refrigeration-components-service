@@ -104,6 +104,20 @@ class CompressorEvaluation(
         TODO("Not yet implemented")
     }
 
+    override fun keyValuesAndTypes(): Map<String, String> {
+        return mapOf(
+            ComponentsConfig.refrigerantKey to "String",
+            ComponentsConfig.evapTempKey to "Double",
+            ComponentsConfig.condTempKey to "Double",
+            ComponentsConfig.capacity to "Double",
+            ComponentsConfig.frequency to "Double",
+            ComponentsConfig.transCritical to "Double",
+            ComponentsConfig.compressorType to "String",
+            ComponentsConfig.subcool to "Double",
+            ComponentsConfig.superheat to "Double"
+        )
+    }
+
     fun evaluate(input: EvaluationInput): Mono<EvalResult> {
         val initialEval = initialEvaluation(input)
         val superHeat = getSuperHeat(input.anyInputs) ?: return getMonoError("superheat not found", input, id)

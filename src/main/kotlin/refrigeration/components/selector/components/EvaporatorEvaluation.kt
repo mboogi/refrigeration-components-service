@@ -50,12 +50,26 @@ class EvaporatorEvaluation(private val fluidPropertyService: FluidPropertyServic
         return setOf(ComponentsConfig.evaporatorPower)
     }
 
+
     override fun outputTypes(): Map<String, String> {
         return mapOf(ComponentsConfig.evaporatorPower to "Double")
     }
 
     override fun wireInputs(requiredKeyMapping: Map<String, String>) {
         TODO("Not yet implemented")
+    }
+
+    override fun keyValuesAndTypes(): Map<String, String> {
+        return mapOf(
+            ComponentsConfig.condensingPressureKey to "Double",
+            ComponentsConfig.condTempKey to "Double",
+            ComponentsConfig.evapTempKey to "Double",
+            ComponentsConfig.evaporationPressureKey to "Double",
+            ComponentsConfig.superheat to "Double",
+            ComponentsConfig.subcool to "Double",
+            ComponentsConfig.massFlowRealKeyStandard to "Double",
+            ComponentsConfig.refrigerantKey to "String"
+        )
     }
 
     private fun evaluate(input: EvaluationInput): Mono<EvalResult> {
