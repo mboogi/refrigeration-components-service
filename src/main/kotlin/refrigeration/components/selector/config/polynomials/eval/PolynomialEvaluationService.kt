@@ -3,7 +3,8 @@ package refrigeration.components.selector.config.polynomials.eval
 import org.slf4j.LoggerFactory
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.core.publisher.toMono
+import reactor.kotlin.core.publisher.toMono
+
 import refrigeration.components.selector.ComponentsConfig
 import refrigeration.components.selector.api.EvalResult
 import refrigeration.components.selector.api.EvalResultInfo

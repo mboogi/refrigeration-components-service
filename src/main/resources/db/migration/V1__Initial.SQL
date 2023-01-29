@@ -1,1 +1,0 @@
-create table tmp(tmp VARCHAR(255) NOT NULL)

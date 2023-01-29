@@ -111,7 +111,7 @@ class CompressorEvaluation(
             ComponentsConfig.condTempKey to "Double",
             ComponentsConfig.capacity to "Double",
             ComponentsConfig.frequency to "Double",
-            ComponentsConfig.transCritical to "Double",
+            ComponentsConfig.transCritical to "Boolean",
             ComponentsConfig.compressorType to "String",
             ComponentsConfig.subcool to "Double",
             ComponentsConfig.superheat to "Double"
@@ -138,14 +138,15 @@ class CompressorEvaluation(
             evalResult.input,
             id
         )
+        val resultValuesMap=evalResult.resultValues.firstOrNull()?:return getMonoError("no previous result found",evalResult.input,id)
         val evapTemp = getEvaporationTemperature(evalResult.input.anyInputs)
             ?: return getMonoError("evaporation temperature not found", evalResult.input, id)
 
-        val evaporationPressure = getEvaporationPressure(evalResult.resultValues.first()?.result)
+         val evaporationPressure = getEvaporationPressure(resultValuesMap.result)
             ?: return getMonoError("evaporation pressure not found", evalResult.input, id)
-        val condensingPressure = getCondensingPressure(evalResult.resultValues.first()?.result)
+        val condensingPressure = getCondensingPressure(resultValuesMap.result)
             ?: return getMonoError("condensing pressure not found", evalResult.input, id)
-        val electricInput = getElectricPower(evalResult.resultValues.first()?.result) ?: return getMonoError(
+        val electricInput = getElectricPower(resultValuesMap.result) ?: return getMonoError(
             "electric power not found",
             evalResult.input,
             id
@@ -156,7 +157,7 @@ class CompressorEvaluation(
             fluidsService.getVapourDensity(superheat, refrigerant, inletTemp, evaporationPressure)
         val enthalpyInputRealConditions =
             fluidsService.getVapourEnthalpy(superheat, refrigerant, inletTemp, evaporationPressure)
-        val volumeFlow = getVolumeFlow(evalResult.resultValues.first()?.result) ?: return Mono.empty()
+        val volumeFlow = getVolumeFlow(resultValuesMap.result) ?: return Mono.empty()
 
         val massFlowReal = densityInputRealConditions.flatMap { massFlowRealConditions(volumeFlow, it) }
 
@@ -212,13 +213,15 @@ class CompressorEvaluation(
         massFlowRealConditions: Double,
         compressorOutletTemperature: Double
     ): EvalResult {
-        val oldInputMap = evalResult.resultValues.first()?.result
+        evalResult.resultValues.firstOrNull()?:EvalResult(EvalResultInfo.WARNING,evalResult.input,
+            listOf(),"previous result map does not container results")
+        val oldInputMap = evalResult.resultValues.first().result
         val newResultMap = mutableMapOf<String, Any>()
         newResultMap.putAll(oldInputMap)
         newResultMap[ComponentsConfig.endEnthalpyRealConditions] = endEnthalpy
         newResultMap[ComponentsConfig.massFlowRealKeyStandard] = massFlowRealConditions
         newResultMap[ComponentsConfig.compressorOutletTemperature] = compressorOutletTemperature
-        val resultValues = ResultValues(evalResult.resultValues.first()?.id, newResultMap, outputTypes())
+        val resultValues = ResultValues(evalResult.resultValues.first().id, newResultMap, outputTypes())
         return EvalResult(evalResult.evalInfo, evalResult.input, listOf(resultValues), evalResult.evalInfoMessage)
     }
 
@@ -267,14 +270,14 @@ class CompressorEvaluation(
                 .map { t ->
                     val density = t.t1
                     val massFlowBigDecimal =
-                        t.t2.resultValues.first()?.result[ComponentsConfig.evalValue] as? BigDecimal
+                        t.t2.resultValues.first()?.result?.get(ComponentsConfig.evalValue) as? BigDecimal
                             ?: throw RuntimeException("mass flow value could not be calculated from eval result")
                     val massflowValue = (massFlowBigDecimal.toDouble())
                     val volumetricFlow = massflowValue.div(density)
                     val enthalpy = t.t3
                     val condensingPressure = t.t4
                     val evapPressure = t.t5
-                    val electricPower = t.t6.resultValues.first()?.result[ComponentsConfig.evalValue] as? BigDecimal
+                    val electricPower = t.t6.resultValues.first()?.result?.get(ComponentsConfig.evalValue) as? BigDecimal
                         ?: throw RuntimeException("Electric Power value could not be calculated from eval result")
                     val electricPowerValue = electricPower.toDouble()
 

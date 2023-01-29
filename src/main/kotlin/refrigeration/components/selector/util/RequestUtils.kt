@@ -14,43 +14,53 @@ fun getRefrigerant(input: Map<String, Any>): String? {
 }
 
 fun getEvaporationTemperature(input: Map<String, Any>): Double? {
-    return input[ComponentsConfig.evapTempKey] as? Double
+    val number= input[ComponentsConfig.evapTempKey]
+    return getDouble(number)
 }
 
 fun getEvaporationPressure(input: Map<String, Any>): Double? {
-    return input[ComponentsConfig.evaporationPressureKey] as? Double
+    val number= input[ComponentsConfig.evaporationPressureKey]
+    return getDouble(number)
 }
 
 fun getCondensingTemperature(input: Map<String, Any>): Double? {
-    return input[ComponentsConfig.condTempKey] as? Double
+    val number= input[ComponentsConfig.condTempKey]
+    return getDouble(number)
 }
 
 fun getCondensingPressure(input: Map<String, Any>): Double? {
-    return input[ComponentsConfig.condensingPressureKey] as? Double
+    val number= input[ComponentsConfig.condensingPressureKey]
+    return getDouble(number)
 }
 
 fun getElectricPower(input: Map<String, Any>): Double? {
-    return input[ComponentsConfig.electricPowerKey] as? Double
+    val number= input[ComponentsConfig.electricPowerKey]
+    return getDouble(number)
 }
 
 fun getRefrigerationPower(input: Map<String, Any>): Double? {
-    return input[ComponentsConfig.evaporatorPower] as? Double
+    val number= input[ComponentsConfig.evaporatorPower]
+    return getDouble(number)
 }
 
 fun getVolumeFlow(input: Map<String, Any>): Double? {
-    return input[ComponentsConfig.volumeFlow] as? Double
+    val number= input[ComponentsConfig.volumeFlow]
+    return getDouble(number)
 }
 
 fun getRealMassFlow(input: Map<String, Any>): Double? {
-    return input[ComponentsConfig.massFlowRealKeyStandard] as? Double
+    val number= input[ComponentsConfig.massFlowRealKeyStandard]
+    return getDouble(number)
 }
 
 fun getCapacity(input: Map<String, Any>): Double? {
-    return input[ComponentsConfig.capacity] as? Double
+    val number= input[ComponentsConfig.capacity]
+    return getDouble(number)
 }
 
 fun getFrequency(input: Map<String, Any>): Double? {
-    return input[ComponentsConfig.frequency] as? Double
+    val number= input[ComponentsConfig.frequency]
+    return getDouble(number)
 }
 
 fun getTransCritical(input: Map<String, Any>): Boolean? {
@@ -62,15 +72,18 @@ fun getCompressorType(input: Map<String, Any>): String? {
 }
 
 fun getCompressorOutletTemperature(input: Map<String, Any>): Double? {
-    return input[ComponentsConfig.compressorOutletTemperature] as? Double
+    val number= input[ComponentsConfig.compressorOutletTemperature]
+    return getDouble(number)
 }
 
 fun getSuperHeat(input: Map<String, Any>): Double? {
-    return input[ComponentsConfig.superheat] as? Double
+    val number = input[ComponentsConfig.superheat]
+    return getDouble(number)
 }
 
 fun getSubCool(input: Map<String, Any>): Double? {
-    return input[ComponentsConfig.subcool] as? Double
+    val number= input[ComponentsConfig.subcool]
+    return getDouble(number)
 }
 
 fun errorEvalResult(text: String, input: EvaluationInput, id: String): EvalResult {
@@ -84,4 +97,18 @@ fun getMonoError(msg: String, input: EvaluationInput, id: String): Mono<EvalResu
 
 fun <T> getValueForKey(values: Map<String, Any>, key: String): T? {
     return values[key] as? T?
+}
+fun getDoubleValue(input: Map<String, Any>, key: String):Double?{
+    val number= input[key]
+    return getDouble(number)
+}
+
+private fun getDouble(number: Any?): Double? {
+    number ?: return null
+    val isInt = number is Int
+    if (isInt) {
+        return (number as Int).toDouble()
+    } else {
+        return number as? Double
+    }
 }

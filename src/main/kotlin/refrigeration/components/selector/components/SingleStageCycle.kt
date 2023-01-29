@@ -3,6 +3,7 @@ package refrigeration.components.selector.components
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import refrigeration.components.selector.ComponentsConfig
 import refrigeration.components.selector.api.*
 import refrigeration.components.selector.util.getInputForRequiredKeys
 
@@ -44,7 +45,21 @@ class SingleStageCycle(private val evaluators: List<Evaluator>) : Evaluator {
     }
 
     override fun keyValuesAndTypes(): Map<String, String> {
-        TODO("Not yet implemented")
+        return mapOf(
+            ComponentsConfig.refrigerantKey to "String",
+            ComponentsConfig.evapTempKey to "Double",
+            ComponentsConfig.condTempKey to "Double",
+            ComponentsConfig.capacity to "Double",
+            ComponentsConfig.frequency to "Double",
+            ComponentsConfig.transCritical to "Boolean",
+            ComponentsConfig.compressorType to "String",
+            ComponentsConfig.subcool to "Double",
+            ComponentsConfig.superheat to "Double",
+            ComponentsConfig.maxVelocityDischarge to "Double",
+            ComponentsConfig.maxVelocityLiquid to "Double",
+            ComponentsConfig.maxVelocitySuction to "Double",
+            ComponentsConfig.pipeMaterial to "String"
+        )
     }
 
     private fun evaluators(input: EvaluationInput): Mono<EvalResult> {

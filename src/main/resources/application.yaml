@@ -1,4 +1,7 @@
 spring:
+  logging:
+    level:
+      root: DEBUG
   codec:
     max-in-memory-size: 500KB
   datasource:
@@ -20,10 +23,7 @@ spring:
     validate-on-migrate: true
     baseline-on-migrate: true
     baseline-version: 0
-logging:
-  level:
-    org:
-      flywaydb=DEBUG:
+    out-of-order: true
 #springdoc:
 #  api-docs:
 #    path: "/helloWorld/swagger/swagger.json"

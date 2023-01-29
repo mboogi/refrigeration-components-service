@@ -7,6 +7,7 @@ import refrigeration.components.selector.ComponentsConfig
 import refrigeration.components.selector.api.*
 import refrigeration.components.selector.config.pipes.crud.PipeService
 import refrigeration.components.selector.config.pipes.db.PipeEntity
+import refrigeration.components.selector.util.getDoubleValue
 import refrigeration.components.selector.util.getMonoError
 import refrigeration.components.selector.util.getValueForKey
 
@@ -58,15 +59,15 @@ class PipeSizeEvaluation(private val pipeService: PipeService) : Evaluator {
         val material =
             getValueForKey<String>(input.anyInputs, ComponentsConfig.pipeMaterial)
                 ?: return getMonoError(materialError, input, id)
-        val volumeFlow = getValueForKey<Double>(input.anyInputs, ComponentsConfig.volumeFlow)
+        val volumeFlow = getDoubleValue(input.anyInputs, ComponentsConfig.volumeFlow)
             ?: return getMonoError(volumeFlowError, input, id)
 
         val maxVelocityMainSuction =
-            getValueForKey<Double>(input.anyInputs, ComponentsConfig.maxVelocitySuction) ?: return Mono.empty()
+            getDoubleValue(input.anyInputs, ComponentsConfig.maxVelocitySuction) ?: return Mono.empty()
         val maxVelocityMainDischarge =
-            getValueForKey<Double>(input.anyInputs, ComponentsConfig.maxVelocityDischarge) ?: return Mono.empty()
+            getDoubleValue(input.anyInputs, ComponentsConfig.maxVelocityDischarge) ?: return Mono.empty()
         val maxVelocityMainLiquid =
-            getValueForKey<Double>(input.anyInputs, ComponentsConfig.maxVelocityLiquid) ?: return Mono.empty()
+            getDoubleValue(input.anyInputs, ComponentsConfig.maxVelocityLiquid) ?: return Mono.empty()
 
         val suction = sizePipe(maxVelocityMainSuction, volumeFlow)
         val discharge = sizePipe(maxVelocityMainDischarge, volumeFlow)

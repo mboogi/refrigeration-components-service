@@ -1,4 +1,4 @@
-CREATE TABLE polynomial_coefficients(
+CREATE TABLE IF NOT EXISTS polynomial_coefficients(
     id          SERIAL PRIMARY KEY,
     description VARCHAR(255) NOT NULL,
     c1 DOUBLE   PRECISION NOT NULL,
@@ -12,38 +12,38 @@ CREATE TABLE polynomial_coefficients(
     c9 DOUBLE   PRECISION NOT NULL,
     c10 DOUBLE  PRECISION NOT NULL
 );
-CREATE TABLE capacity_polynomial_mapping(
+CREATE TABLE IF NOT EXISTS capacity_polynomial_mapping(
     id          SERIAL PRIMARY KEY,
     capacity DOUBLE   PRECISION NOT NULL,
     polynomial_id BIGINT NOT NULL
 );
-CREATE TABLE compressor_polynomial_mappings(
+CREATE TABLE IF NOT EXISTS compressor_polynomial_mappings(
     id          SERIAL PRIMARY KEY,
     compressor_type VARCHAR(255) NOT NULL,
     polynomial_id BIGINT NOT NULL
 );
 
 
-CREATE TABLE operation_type_polynomial_mapping(
+CREATE TABLE IF NOT EXISTS operation_type_polynomial_mapping(
     id          SERIAL PRIMARY KEY,
     trans_critical Boolean NOT NULL,
     polynomial_id BIGINT NOT NULL
 );
 
 
-CREATE TABLE refrigerant_polynomial_mapping(
+CREATE TABLE IF NOT EXISTS refrigerant_polynomial_mapping(
     id          SERIAL PRIMARY KEY,
     refrigerant_type VARCHAR(255) NOT NULL,
     polynomial_id BIGINT NOT NULL
 );
 
-CREATE TABLE frequency_polynomial_mapping(
+CREATE TABLE IF NOT EXISTS frequency_polynomial_mapping(
     id          SERIAL PRIMARY KEY,
     frequency DOUBLE   PRECISION NOT NULL,
     polynomial_id BIGINT NOT NULL
 );
 --CREATE TYPE polynomial_types AS ENUM ('MASS_FLOW', 'CURRENT', 'REFRIGERATION_POWER');
-CREATE TABLE polynomial_type(
+CREATE TABLE IF NOT EXISTS polynomial_type(
     id              SERIAL PRIMARY KEY,
     polynomial_type            VARCHAR(255)    NOT NULL,
     polynomial_id   BIGINT NOT NULL
@@ -66,7 +66,7 @@ CREATE VIEW polynomial_mappings_view as
         left join operation_type_polynomial_mapping as ot on pt.polynomial_id=ot.polynomial_id;
 
 
-CREATE TABLE hydraulic_pipe(
+CREATE TABLE IF NOT EXISTS hydraulic_pipe(
     id              SERIAL PRIMARY KEY,
     name            VARCHAR(255),
     standard        VARCHAR(255)    NOT NULL,
@@ -76,11 +76,11 @@ CREATE TABLE hydraulic_pipe(
     max_pressure    DOUBLE   PRECISION NOT NULL
 );
 
-CREATE TYPE  VALVE_TYPE as ENUM ('EXPANSION_VALVE', 'LIQUID_INJECTION', 'HOT_GAS_BYPASS', 'SUCTION_THROTTLING', 'HEAD_PRESSURE');
-CREATE TYPE  FLOW_PATTERN as ENUM ('UNI_FLOW', 'BI_FLOW');
+CREATE TYPE  VALVE_TYPE  as ENUM ('EXPANSION_VALVE', 'LIQUID_INJECTION', 'HOT_GAS_BYPASS', 'SUCTION_THROTTLING', 'HEAD_PRESSURE');
+CREATE TYPE  FLOW_PATTERN  as ENUM ('UNI_FLOW', 'BI_FLOW');
 
 
-CREATE TABLE  valve_entity(
+CREATE TABLE  IF NOT EXISTS valve_entity(
     id                          SERIAL PRIMARY KEY,
     refrigerant                 VARCHAR(255) NOT NULL,
     valve_name                  VARCHAR(255) NOT NULL,
