@@ -9,7 +9,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import refrigeration.components.selector.TestContainersSetup
 
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ValveServiceTest : TestContainersSetup() {

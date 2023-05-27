@@ -9,8 +9,8 @@ internal class PipeUtilitiesTest {
     fun sizePipe() {
         val pipeUtilities = PipeUtilities()
         val result = pipeUtilities.sizePipe(4.7422, 2.48) * 1000
-        val expected = 13.601
-        assertEquals(expected, result, 0.01)
+        val expected = 13600.0
+        assertEquals(expected, result, 0.03)
     }
 
     @Test

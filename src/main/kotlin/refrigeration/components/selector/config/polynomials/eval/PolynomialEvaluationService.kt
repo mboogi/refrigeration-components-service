@@ -197,7 +197,7 @@ class PolynomialEvaluationService(
         condTemp: Double
     ): Mono<BigDecimal> {
         val result = calculate(polynomial, mappings, evapTemp, condTemp)
-            ?: return Mono.error(RuntimeException("could not calcualte polynomial value"))
+            ?: return Mono.error(RuntimeException("could not evaluate polynomial value"))
         return Mono.just(result)
     }
 

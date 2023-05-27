@@ -26,21 +26,11 @@ class CondenserEvaluation() : Evaluator {
         return "CondenserEvaluation"
     }
 
-    override fun getRequiredInputKeys(): Set<String> {
-        return setOf(
-            ComponentsConfig.electricPowerKey,
-            ComponentsConfig.evaporatorPower
-        )
-    }
-
     override fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
         val result = input.map { evaluate(it) }
         return Flux.concat(result)
     }
 
-    override fun outputValues(): Set<String> {
-        return setOf(ComponentsConfig.condenserPower)
-    }
 
     override fun outputTypes(): Map<String, String> {
         return mapOf(ComponentsConfig.condenserPower to "Double")

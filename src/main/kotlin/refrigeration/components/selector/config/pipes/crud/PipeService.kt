@@ -2,6 +2,7 @@ package refrigeration.components.selector.config.pipes.crud
 
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import refrigeration.components.selector.api.pipes.Pipe
 import refrigeration.components.selector.config.pipes.db.PipeEntity
 import refrigeration.components.selector.config.pipes.db.PipeEntityRepository
@@ -17,6 +18,10 @@ class PipeService(private val pipeEntityRepository: PipeEntityRepository) {
     fun update(pipe: Pipe) {
         pipeEntityRepository.deleteById(pipe.id)
         pipeEntityRepository.save(PipeEntity.convert(pipe))
+    }
+
+    fun deleteAll(): Mono<Void> {
+        return pipeEntityRepository.deleteAll()
     }
 
     fun findAll(): Flux<PipeEntity> {

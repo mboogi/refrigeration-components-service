@@ -51,38 +51,11 @@ class CompressorEvaluation(
         return "CompressorEvaluation"
     }
 
-    override fun getRequiredInputKeys(): Set<String> {
-        return setOf(
-            ComponentsConfig.refrigerantKey,
-            ComponentsConfig.evapTempKey,
-            ComponentsConfig.condTempKey,
-            ComponentsConfig.capacity,
-            ComponentsConfig.frequency,
-            ComponentsConfig.transCritical,
-            ComponentsConfig.compressorType,
-            ComponentsConfig.subcool,
-            ComponentsConfig.superheat
-        )
-    }
 
     override fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
         return Flux.fromIterable(input).flatMap { evaluate(it) }
     }
 
-    override fun outputValues(): Set<String> {
-        return setOf(
-            ComponentsConfig.volumeFlow,
-            ComponentsConfig.massFlowKeyStandard,
-            ComponentsConfig.electricPowerKey,
-            ComponentsConfig.densityAtInletStandardKey,
-            ComponentsConfig.enthalpyAtInletStandardKey,
-            ComponentsConfig.evaporationPressureKey,
-            ComponentsConfig.condensingPressureKey,
-            ComponentsConfig.endEnthalpyRealConditions,
-            ComponentsConfig.massFlowRealKeyStandard,
-            ComponentsConfig.compressorOutletTemperature
-        )
-    }
 
     override fun outputTypes(): Map<String, String> {
         val doubleType = Double::class.simpleName ?: throw RuntimeException("Double type simple name not found")
@@ -118,7 +91,7 @@ class CompressorEvaluation(
         )
     }
 
-    fun evaluate(input: EvaluationInput): Mono<EvalResult> {
+    private fun evaluate(input: EvaluationInput): Mono<EvalResult> {
         val initialEval = initialEvaluation(input)
         val superHeat = getSuperHeat(input.anyInputs) ?: return getMonoError("superheat not found", input, id)
         val subCool = getSubCool(input.anyInputs) ?: return getMonoError("subcool not found", input, id)
@@ -138,11 +111,15 @@ class CompressorEvaluation(
             evalResult.input,
             id
         )
-        val resultValuesMap=evalResult.resultValues.firstOrNull()?:return getMonoError("no previous result found",evalResult.input,id)
+        val resultValuesMap = evalResult.resultValues.firstOrNull() ?: return getMonoError(
+            "no previous result found",
+            evalResult.input,
+            id
+        )
         val evapTemp = getEvaporationTemperature(evalResult.input.anyInputs)
             ?: return getMonoError("evaporation temperature not found", evalResult.input, id)
 
-         val evaporationPressure = getEvaporationPressure(resultValuesMap.result)
+        val evaporationPressure = getEvaporationPressure(resultValuesMap.result)
             ?: return getMonoError("evaporation pressure not found", evalResult.input, id)
         val condensingPressure = getCondensingPressure(resultValuesMap.result)
             ?: return getMonoError("condensing pressure not found", evalResult.input, id)
@@ -213,8 +190,10 @@ class CompressorEvaluation(
         massFlowRealConditions: Double,
         compressorOutletTemperature: Double
     ): EvalResult {
-        evalResult.resultValues.firstOrNull()?:EvalResult(EvalResultInfo.WARNING,evalResult.input,
-            listOf(),"previous result map does not container results")
+        evalResult.resultValues.firstOrNull() ?: EvalResult(
+            EvalResultInfo.WARNING, evalResult.input,
+            listOf(), "previous result map does not container results"
+        )
         val oldInputMap = evalResult.resultValues.first().result
         val newResultMap = mutableMapOf<String, Any>()
         newResultMap.putAll(oldInputMap)
@@ -235,6 +214,7 @@ class CompressorEvaluation(
         return Mono
             .just(result)
     }
+
 
     private fun initialEvaluation(input: EvaluationInput): Mono<EvalResult> {
         val evapTemp = getEvaporationTemperature(input.anyInputs) ?: return Mono.empty()
@@ -277,8 +257,9 @@ class CompressorEvaluation(
                     val enthalpy = t.t3
                     val condensingPressure = t.t4
                     val evapPressure = t.t5
-                    val electricPower = t.t6.resultValues.first()?.result?.get(ComponentsConfig.evalValue) as? BigDecimal
-                        ?: throw RuntimeException("Electric Power value could not be calculated from eval result")
+                    val electricPower =
+                        t.t6.resultValues.first()?.result?.get(ComponentsConfig.evalValue) as? BigDecimal
+                            ?: throw RuntimeException("Electric Power value could not be calculated from eval result")
                     val electricPowerValue = electricPower.toDouble()
 
                     CompressorIO(

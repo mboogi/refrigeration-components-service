@@ -24,8 +24,16 @@ spring:
     baseline-on-migrate: true
     baseline-version: 0
     out-of-order: true
-#springdoc:
-#  api-docs:
-#    path: "/helloWorld/swagger/swagger.json"
-#  swagger-ui:
-#    path: "/helloWorld/swagger"
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: [ "health","prometheus", "metrics" ]
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true

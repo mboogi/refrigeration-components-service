@@ -8,7 +8,7 @@ import refrigeration.components.selector.api.ResultValues
 import java.math.BigDecimal
 
 data class ValveSelectionResult(
-    val valveCalculatedCapacity: BigDecimal,
+    val valveCalculatedCapacity: Double,
     val valveName: String
 ) {
 

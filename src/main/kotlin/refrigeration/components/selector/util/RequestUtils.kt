@@ -99,7 +99,7 @@ fun <T> getValueForKey(values: Map<String, Any>, key: String): T? {
     return values[key] as? T?
 }
 fun getDoubleValue(input: Map<String, Any>, key: String):Double?{
-    val number= input[key]
+    val number= input[key]?:return null
     return getDouble(number)
 }
 

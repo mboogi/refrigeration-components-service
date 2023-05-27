@@ -28,6 +28,9 @@ class ValveService(private val repo: ValveRepository) {
     fun findAll(): Flux<Valve> {
         return repo.findAll().map { it.convert() }
     }
+    fun deleteAll(): Mono<Void> {
+        return repo.deleteAll()
+    }
 
     fun getValveBestMatchRaw(
         refrigerant: String,
@@ -84,7 +87,7 @@ class ValveService(private val repo: ValveRepository) {
 
         val result = interpolationService.interpolate(interpolationGroup, evaporatingTemperature, condensingTemperature)
         val valveName = interpolationGroup.highXLowY?.valveName ?: ""
-        return ValveSelectionResult(result, valveName)
+        return ValveSelectionResult(result.toDouble(), valveName)
 
     }
 

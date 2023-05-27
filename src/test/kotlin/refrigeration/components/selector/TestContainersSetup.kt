@@ -8,6 +8,7 @@ import org.testcontainers.utility.DockerImageName
 import reactor.core.scheduler.Schedulers
 import refrigeration.components.selector.config.pipes.crud.PipeService
 import refrigeration.components.selector.config.polynomials.crud.PolynomialCoefficientsService
+import refrigeration.components.selector.config.valves.crud.ValveService
 import java.util.function.Supplier
 
 fun postgres(imageName: String, opts: JdbcDatabaseContainer<Nothing>.() -> Unit) =
@@ -19,12 +20,15 @@ open class TestContainersSetup {
 
     protected fun saveCoefficients(service: PolynomialCoefficientsService) {
         val result = testDataProvider.getPolynomialCoefficientRequests("PolynomialCoefficients.json")
-
         service
             .save(result)
             .publishOn(Schedulers.boundedElastic())
             .collectList()
             .block()
+    }
+    protected fun saveValves(service:ValveService){
+        val valvesTestData = testDataProvider.getValves("valves_r134a.json")
+        service.saveAll(valvesTestData).collectList().block()
     }
 
     protected fun savePipes(service: PipeService) {

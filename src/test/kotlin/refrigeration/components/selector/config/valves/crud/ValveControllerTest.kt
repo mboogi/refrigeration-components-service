@@ -19,6 +19,7 @@ internal class ValveControllerTest : TestContainersSetup() {
     @Autowired
     private lateinit var controller: ValveController
 
+
     @Test
     fun getAll() {
         val result = controller.getAll().collectList().block()

@@ -28,28 +28,9 @@ class EvaporatorEvaluation(private val fluidPropertyService: FluidPropertyServic
     override fun getName(): String {
         return "EvaporatorEvaluation"
     }
-
-    override fun getRequiredInputKeys(): Set<String> {
-        return setOf(
-            ComponentsConfig.condensingPressureKey,
-            ComponentsConfig.condTempKey,
-            ComponentsConfig.evapTempKey,
-            ComponentsConfig.evaporationPressureKey,
-            ComponentsConfig.subcool,
-            ComponentsConfig.superheat,
-            ComponentsConfig.massFlowRealKeyStandard,
-            ComponentsConfig.refrigerantKey
-        )
-    }
-
     override fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
         return Flux.fromIterable(input).flatMap { evaluate(it) }
     }
-
-    override fun outputValues(): Set<String> {
-        return setOf(ComponentsConfig.evaporatorPower)
-    }
-
 
     override fun outputTypes(): Map<String, String> {
         return mapOf(ComponentsConfig.evaporatorPower to "Double")
@@ -137,4 +118,6 @@ class EvaporatorEvaluation(private val fluidPropertyService: FluidPropertyServic
         )
         return EvalResult(EvalResultInfo.SUCCESS, input, listOf(resultValues), "Evaporator Evaluation Finished")
     }
+
+
 }

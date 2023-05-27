@@ -26,14 +26,6 @@ class ValveEvaluation(private val valveService: ValveService) : Evaluator {
         return "ValveEvaluation"
     }
 
-    override fun getRequiredInputKeys(): Set<String> {
-        return setOf(
-            ComponentsConfig.refrigerantKey,
-            ComponentsConfig.evapTempKey,
-            ComponentsConfig.condTempKey,
-            ComponentsConfig.evaporatorPower
-        )
-    }
 
     override fun keyValuesAndTypes(): Map<String, String> {
         return mapOf(
@@ -67,10 +59,6 @@ class ValveEvaluation(private val valveService: ValveService) : Evaluator {
             )
         return valveService.getValveBestMatchCandidate(refrigerant, refrigerationPower, condensingTemperature, evapTemp)
             .map { it.convert(evaluationInput, id) }
-    }
-
-    override fun outputValues(): Set<String> {
-        TODO("Not yet implemented")
     }
 
     override fun outputTypes(): Map<String, String> {

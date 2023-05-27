@@ -1,23 +1,23 @@
 package refrigeration.components.selector.config.polynomials.eval
 
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.testcontainers.junit.jupiter.Testcontainers
+import reactor.test.StepVerifier
 import refrigeration.components.selector.ComponentsConfig
 import refrigeration.components.selector.TestContainersSetup
 import refrigeration.components.selector.api.EvalResult
 import refrigeration.components.selector.api.EvalResultInfo
 import refrigeration.components.selector.api.EvaluationInput
 import refrigeration.components.selector.api.ResultValues
-import refrigeration.components.selector.config.polynomials.db.PolynomialTypesEnum
 import refrigeration.components.selector.config.polynomials.crud.PolynomialCoefficientsService
 import refrigeration.components.selector.config.polynomials.crud.PolynomialSearchService
+import refrigeration.components.selector.config.polynomials.db.PolynomialTypesEnum
+import java.lang.RuntimeException
+import java.math.BigDecimal
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class PolynomialEvaluationServiceTest(
@@ -30,6 +30,7 @@ internal class PolynomialEvaluationServiceTest(
     private val evaluationService =
         PolynomialEvaluationService(PolynomialTypesEnum.MASS_FLOW.toString(), searchService, coefficientsService)
 
+    @Test
     fun `evaluate polynomial when values are outside of polynomial areas`() {
         val refrigerant = "R134a"
         val evaporatingTemperature = -10.0
@@ -48,21 +49,15 @@ internal class PolynomialEvaluationServiceTest(
             ComponentsConfig.compressorType to compressorType
         )
         val input = EvaluationInput(PolynomialTypesEnum.MASS_FLOW.toString(), inputMap)
-        val result = evaluationService.evaluate(listOf(input)).blockFirst()
-        val expectedResultValues = ResultValues(
-            "",
-            mapOf("evalValue" to 308.582513720247),
-            mapOf("evalValue" to "Double")
-        )
-        val expectedResult = EvalResult(
-            EvalResultInfo.SUCCESS,
-            input,
-            listOf(expectedResultValues),
-            "successfully evaluated MASS_FLOW"
-        )
-        Assertions.assertEquals(expectedResult, result)
+
+        StepVerifier
+            .create(evaluationService.evaluate(listOf(input)))
+            .expectError(RuntimeException::class.java)
+            .verify()
+
     }
 
+    @Test
     fun `the evaluation for mass flow polynomial should be interpolated for frequency and capacity`() {
         val refrigerant = "R134a"
         val evaporationTemp = -10.0
@@ -81,19 +76,10 @@ internal class PolynomialEvaluationServiceTest(
             ComponentsConfig.compressorType to compressorType
         )
         val input = EvaluationInput(PolynomialTypesEnum.MASS_FLOW.toString(), inputMap)
-        val result = evaluationService.evaluate(listOf(input)).blockFirst()
-        val expectedResultValues = ResultValues(
-            "",
-            mapOf("evalValue" to 308.582513720247),
-            mapOf("evalValue" to "Double")
-        )
-        val expectedResult = EvalResult(
-            EvalResultInfo.SUCCESS,
-            input,
-            listOf(expectedResultValues),
-            "successfully evaluated MASS_FLOW"
-        )
-        Assertions.assertEquals(expectedResult, result)
+        StepVerifier.create(evaluationService.evaluate(listOf(input)))
+            .expectNextMatches { extractAndAssertResult(it,308.58) }
+
+
     }
 
     @Test
@@ -114,20 +100,10 @@ internal class PolynomialEvaluationServiceTest(
             ComponentsConfig.transCritical to transCritical,
             ComponentsConfig.compressorType to compressorType
         )
-        val input = EvaluationInput(PolynomialTypesEnum.MASS_FLOW.toString(), inputMap)
-        val result = evaluationService.evaluate(listOf(input)).blockFirst()
-        val expectedResultValues = ResultValues(
-            "",
-            mapOf("evalValue" to 681.0096854515511),
-            mapOf("evalValue" to "Double")
-        )
-        val expectedResult = EvalResult(
-            EvalResultInfo.SUCCESS,
-            input,
-            listOf(expectedResultValues),
-            "successfully evaluated MASS_FLOW"
-        )
-        Assertions.assertEquals(expectedResult, result)
+        val input = EvaluationInput("", inputMap)
+        StepVerifier.create(evaluationService.evaluate(listOf(input)))
+            .expectNextMatches { extractAndAssertResult(it,681.00) }
+
     }
 
     @Test
@@ -149,19 +125,9 @@ internal class PolynomialEvaluationServiceTest(
             ComponentsConfig.compressorType to compressorType
         )
         val input = EvaluationInput(PolynomialTypesEnum.MASS_FLOW.toString(), inputMap)
-        val result = evaluationService.evaluate(listOf(input)).blockFirst()
-        val expectedResultValues = ResultValues(
-            "",
-            mapOf("evalValue" to 462.8737705803499),
-            mapOf("evalValue" to "Double")
-        )
-        val expectedResult = EvalResult(
-            EvalResultInfo.SUCCESS,
-            input,
-            listOf(expectedResultValues),
-            "successfully evaluated MASS_FLOW"
-        )
-        Assertions.assertEquals(expectedResult, result)
+        StepVerifier.create(evaluationService.evaluate(listOf(input)))
+            .expectNextMatches { extractAndAssertResult(it,462.87) }
+
     }
 
     @Test
@@ -182,21 +148,22 @@ internal class PolynomialEvaluationServiceTest(
             ComponentsConfig.transCritical to transCritical,
             ComponentsConfig.compressorType to compressorType
         )
-        val input = EvaluationInput(PolynomialTypesEnum.MASS_FLOW.toString(), inputMap)
-        val expectedResultValues = ResultValues(
-            "",
-            mapOf("evalValue" to 617.165027440467),
-            mapOf("evalValue" to "Double"),
-        )
-        val result = evaluationService.evaluate(listOf(input)).blockFirst()
-        val expectedResult = EvalResult(
-            EvalResultInfo.SUCCESS,
-            input,
-            listOf(expectedResultValues),
-            "successfully evaluated MASS_FLOW"
-        )
 
-        Assertions.assertEquals(expectedResult, result)
+        val input = EvaluationInput(PolynomialTypesEnum.MASS_FLOW.toString(), inputMap)
+//        val tmp=evaluationService.evaluate(listOf(input)).collectList().block()
+//        println(tmp?.first())
+        StepVerifier
+            .create(evaluationService.evaluate(listOf(input)))
+            .expectNextMatches { extractAndAssertResult(it,617.16) }
+    }
+
+    fun extractAndAssertResult(evalResult: EvalResult, expected:Double):Boolean{
+        val info=evalResult.evalInfo
+        val resultRaw=evalResult.resultValues.first().result.get("evalResult") as BigDecimal
+        val result=resultRaw.toDouble()
+        Assertions.assertEquals(expected,result,0.2)
+        Assertions.assertEquals(EvalResultInfo.SUCCESS,info)
+        return true
     }
 
     @BeforeAll

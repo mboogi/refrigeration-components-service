@@ -37,20 +37,17 @@ dependencies {
     testImplementation("org.testcontainers:postgresql:1.17.5")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
-
-
+    testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
 
     implementation("org.postgresql:postgresql:42.5.0")
 
-    implementation("io.springfox:springfox-swagger2:3.0.0")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.0-rc3")
 
-    compileOnly("org.springframework.metrics:spring-metrics:latest.release")
-    compileOnly("io.prometheus:simpleclient_common:latest.release")
+    //health
+    implementation("org.springframework.boot:spring-boot-starter-actuator:3.0.1")
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus:1.10.3")
 
-
-    implementation("io.springfox:springfox-boot-starter:3.0.0")
-    implementation("io.springfox:springfox-swagger-ui:3.0.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.0.2")
 
 }
 
@@ -68,40 +65,40 @@ tasks.jacocoTestReport {
     }
     finalizedBy("jacocoTestCoverageVerification")
 }
-// tasks.jacocoTestCoverageVerification {
-//    violationRules {
-//        rule {
-//            limit {
-//                minimum = "0.30".toBigDecimal()
-//            }
-//        }
-//        rule {
-//            enabled = true
-//            element = "CLASS"
-//            limit {
-//                counter = "BRANCH"
-//                value = "COVEREDRATIO"
-//                minimum = "0.90".toBigDecimal()
-//            }
-//
-//            limit {
-//                counter = "LINE"
-//                value = "COVEREDRATIO"
-//                minimum = "0.80".toBigDecimal()
-//            }
-//
-//            limit {
-//                counter = "LINE"
-//                value = "TOTALCOUNT"
-//                maximum = "200".toBigDecimal()
-//            }
-//            excludes = listOf(
-//                "*.test.*",
-//                "*.Kotlin*"
-//            )
-//        }
-//    }
-// }
+ tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = "0.30".toBigDecimal()
+            }
+        }
+        rule {
+            enabled = true
+            element = "CLASS"
+            limit {
+                counter = "BRANCH"
+                value = "COVEREDRATIO"
+                minimum = "0.90".toBigDecimal()
+            }
+
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = "0.80".toBigDecimal()
+            }
+
+            limit {
+                counter = "LINE"
+                value = "TOTALCOUNT"
+                maximum = "200".toBigDecimal()
+            }
+            excludes = listOf(
+                "*.test.*",
+                "*.Kotlin*"
+            )
+        }
+    }
+ }
 tasks.withType<Test> {
     jacoco {
         toolVersion = "0.8.8"

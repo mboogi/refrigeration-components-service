@@ -31,6 +31,16 @@ class PolynomialCoefficientsService(
     fun findAllPolynomialMappings(): Flux<PolynomialCoefficientsEntity> {
         return repo.findAll()
     }
+    //TODO("modify to return mono void")
+    fun deleteAll(){
+        capacityRepos.deleteAll()
+        compressorRepo.deleteAll()
+        operationType.deleteAll()
+        refrigerantRepo.deleteAll()
+        frequencyRepository.deleteAll()
+        polynomialTypeRepository.deleteAll()
+        repo.deleteAll()
+    }
 
     fun findPolynomialsForCompressorAndRefrigerant(
         compressor: String,

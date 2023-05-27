@@ -24,16 +24,10 @@ class SingleStageCycle(private val evaluators: List<Evaluator>) : Evaluator {
         return "SingleStageCycleEvaluation"
     }
 
-    override fun getRequiredInputKeys(): Set<String> {
-        TODO("Not yet implemented")
-    }
+
 
     override fun evaluate(input: List<EvaluationInput>): Flux<EvalResult> {
         return Flux.fromIterable(input).flatMap { evaluators(it) }
-    }
-
-    override fun outputValues(): Set<String> {
-        return setOf()
     }
 
     override fun outputTypes(): Map<String, String> {
@@ -75,40 +69,41 @@ class SingleStageCycle(private val evaluators: List<Evaluator>) : Evaluator {
             evaluators.filter { it.getName() == "ValveEvaluation" }.firstOrNull() ?: return Mono.empty()
         val pipesEvaluation =
             evaluators.filter { it.getName() == "Pipe Size Evaluation" }.firstOrNull() ?: return Mono.empty()
+
         val eval = compressorEvaluator
             .evaluate(listOf(input)).next()
             .map {
                 getInputForRequiredKeys(
                     combineInputAndResult(input, it, "compressor1", evaluationContext),
-                    evaporatorEvaluator.getRequiredInputKeys()
+                    evaporatorEvaluator.keyValuesAndTypes().map { et->et.key }.toSet()
                 )
             }
             .flatMap { evaporatorEvaluator.evaluate(listOf(it)).next() }
             .map {
                 getInputForRequiredKeys(
                     combineInputAndResult(input, it, "evaporator1", evaluationContext),
-                    condenserEvaluator.getRequiredInputKeys()
+                    condenserEvaluator.keyValuesAndTypes().map { et->et.key }.toSet()
                 )
             }
             .flatMap { condenserEvaluator.evaluate(listOf(it)).next() }
             .map {
                 getInputForRequiredKeys(
                     combineInputAndResult(input, it, "condenser1", evaluationContext),
-                    valveEvaluation.getRequiredInputKeys()
+                    valveEvaluation.keyValuesAndTypes().map { et->et.key }.toSet()
                 )
             }
             .flatMap { valveEvaluation.evaluate(listOf(it)).next() }
             .map {
                 getInputForRequiredKeys(
                     combineInputAndResult(input, it, "valves", evaluationContext),
-                    pipesEvaluation.getRequiredInputKeys()
+                    pipesEvaluation.keyValuesAndTypes().map { et->et.key }.toSet()
                 )
             }
             .flatMap { pipesEvaluation.evaluate(listOf(it)).next() }
             .map {
                 getInputForRequiredKeys(
                     combineInputAndResult(input, it, "pipes", evaluationContext),
-                    pipesEvaluation.getRequiredInputKeys()
+                    pipesEvaluation.keyValuesAndTypes().map { et->et.key }.toSet()
                 )
             }
 

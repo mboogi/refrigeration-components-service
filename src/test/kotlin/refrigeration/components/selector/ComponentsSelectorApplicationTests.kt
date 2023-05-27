@@ -8,7 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.ApplicationContext
 import org.testcontainers.junit.jupiter.Testcontainers
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ComponentsSelectorApplicationTests : TestContainersSetup() {
