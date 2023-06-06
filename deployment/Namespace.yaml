@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    kubernetes.io/metadata.name: components-selector
+  name: components-selector
+spec:
+  finalizers:
+  - kubernetes
+status:
+  phase: Active

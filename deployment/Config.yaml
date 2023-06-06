@@ -1,0 +1,15 @@
+apiVersion: v1
+data:
+  datasource.url: "jdbc:postgresql://postgres-first-postgresql.default.svc.cluster.local:5432/local"
+  r2dbc.url: "r2dbc:postgresql://postgres-first-postgresql.default.svc.cluster.local:5432/local?schema=public"
+  flyway.url: "jdbc:postgresql://postgres-first-postgresql.default.svc.cluster.local:5432/local"
+  datasource.password: "kFVPCPZC25"
+  r2dbc.password: "kFVPCPZC25"
+  flyway.password: "kFVPCPZC25"
+  datasource.user: "postgres"
+  r2dbc.user: "postgres"
+  flyway.user: "postgres"
+kind: ConfigMap
+metadata:
+  name: config-map-be
+  namespace: components-selector

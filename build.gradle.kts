@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
     id("org.springframework.boot") version "3.0.1"
@@ -57,6 +58,46 @@ tasks.withType<KotlinCompile> {
         jvmTarget = "17"
     }
 }
+//tasks.getByName<BootJar>("bootJar") {
+//    enabled = false
+//}
+
+//tasks.getByName<Jar>("jar") {
+//    enabled = true
+//    manifest {
+//        attributes["Main-Class"] = "refrigeration.components.selector.ComponentsSelectorApplicationKt"
+//    }
+//    // To avoid the duplicate handling strategy error
+//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+//
+//    // To add all of the dependencies
+//    from(sourceSets.main.get().output)
+//
+//    dependsOn(configurations.runtimeClasspath)
+//    from({
+//        configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
+//    })
+//}
+tasks {
+    val fatJar = register<Jar>("fatJar") {
+        dependsOn.addAll(listOf("compileJava", "compileKotlin", "processResources")) // We need this for Gradle optimization to work
+        archiveClassifier.set("standalone") // Naming the jar
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        manifest {
+            attributes["Main-Class"] = "refrigeration.components.selector.ComponentsSelectorApplicationKt"
+        }
+
+        val sourcesMain = sourceSets.main.get()
+        val contents = configurations.runtimeClasspath.get()
+            .map { if (it.isDirectory) it else zipTree(it) } +
+                sourcesMain.output
+        from(contents)
+    }
+    build {
+        dependsOn(fatJar) // Trigger fat jar creation during build
+    }
+}
+
 tasks.jacocoTestReport {
     reports {
         html.required.set(true)
