@@ -15,17 +15,17 @@ spring:
     max-in-memory-size: 500KB
   datasource:
     driverClassName: "org.postgresql.Driver"
-    url: "jdbc:postgresql://db-postgresql-fra1-57714-do-user-7652112-0.b.db.ondigitalocean.com:25060/local"
-    username: doadmin
-    password: AVNS_BRpziuQRcVQ9ftTVEuQ
+    url: "jdbc:postgresql://postgres-first-postgresql.default.svc.cluster.local:5432/local"
+    username: postgres
+    password: kFVPCPZC25
   r2dbc:
-    url: "r2dbc:postgresql://db-postgresql-fra1-57714-do-user-7652112-0.b.db.ondigitalocean.com:25060/local?schema=public"
-    username: doadmin
-    password: AVNS_BRpziuQRcVQ9ftTVEuQ
+    url: "r2dbc:postgresql://postgres-first-postgresql.default.svc.cluster.local:5432/local?schema=public"
+    username: postgres
+    password: kFVPCPZC25
   flyway:
-    url: "jdbc:postgresql://db-postgresql-fra1-57714-do-user-7652112-0.b.db.ondigitalocean.com:25060/local?ssl=true"
-    user: doadmin
-    password: AVNS_BRpziuQRcVQ9ftTVEuQ
+    url: "jdbc:postgresql://postgres-first-postgresql.default.svc.cluster.local:5432/local"
+    user: postgres
+    password: kFVPCPZC25
     table: schema_history
     clean-disabled: false
     enabled: true

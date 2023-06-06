@@ -27,7 +27,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
     implementation("org.springframework.boot:spring-boot-starter-data-r2dbc:3.0.1")
-    runtimeOnly("org.postgresql:r2dbc-postgresql:1.0.0.RELEASE")
+//    runtimeOnly("org.postgresql:r2dbc-postgresql:1.0.0.RELEASE")
+    runtimeOnly("org.postgresql:r2dbc-postgresql:1.0.1.RELEASE")
     runtimeOnly("org.postgresql:postgresql:42.5.0")
     implementation("org.flywaydb:flyway-core")
 
@@ -49,6 +50,13 @@ dependencies {
     runtimeOnly("io.micrometer:micrometer-registry-prometheus:1.10.3")
 
     implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.0.2")
+    implementation("org.springframework.cloud:spring-cloud-starter-kubernetes-client-config:3.0.3")
+    implementation("org.springframework.cloud:spring-cloud-config-client:4.0.3")
+    implementation("org.springframework.cloud:spring-cloud-starter-bootstrap:4.0.3")
+    implementation("org.springframework.boot:spring-boot-starter-actuator:3.1.0")
+
+
+
 
 }
 
