@@ -2,21 +2,30 @@ spring:
   logging:
     level:
       root: DEBUG
+  cloud:
+    kubernetes:
+      config:
+        enabled: true
+        name: default-name
+        namespace: components-selector
+        sources:
+          - namespace: components-selector
+            name: config-map-be
   codec:
     max-in-memory-size: 500KB
   datasource:
     driverClassName: "org.postgresql.Driver"
-    url: "jdbc:postgresql://127.0.0.0:5432/local"
-    username: postgres
-    password: postgres
+    url: "jdbc:postgresql://db-postgresql-fra1-57714-do-user-7652112-0.b.db.ondigitalocean.com:25060/local"
+    username: doadmin
+    password: AVNS_BRpziuQRcVQ9ftTVEuQ
   r2dbc:
-    url: "r2dbc:postgresql://127.0.0.0:5432/local?schema=public"
-    username: postgres
-    password: postgres
+    url: "r2dbc:postgresql://db-postgresql-fra1-57714-do-user-7652112-0.b.db.ondigitalocean.com:25060/local?schema=public"
+    username: doadmin
+    password: AVNS_BRpziuQRcVQ9ftTVEuQ
   flyway:
-    url: "jdbc:postgresql://127.0.0.0:5432/local"
-    user: postgres
-    password: postgres
+    url: "jdbc:postgresql://db-postgresql-fra1-57714-do-user-7652112-0.b.db.ondigitalocean.com:25060/local?ssl=true"
+    user: doadmin
+    password: AVNS_BRpziuQRcVQ9ftTVEuQ
     table: schema_history
     clean-disabled: false
     enabled: true
