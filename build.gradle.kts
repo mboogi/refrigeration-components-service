@@ -49,6 +49,7 @@ dependencies {
     runtimeOnly("io.micrometer:micrometer-registry-prometheus:1.10.3")
 
     implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.0.2")
+    implementation("org.springframework.boot:spring-boot-starter-logging:3.1.0")
 
 }
 
