@@ -4,14 +4,15 @@ metadata:
   name: ingress-backend
   namespace: components-selector
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
-#    nginx.ingress.kubernetes.io/x-forwarded-prefix: "/foo"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   ingressClassName: nginx
   rules:
-    - http:
+    - host: components-selector.info
+      http:
         paths:
-        - path: "/foo(/|$)(.*)"
+        - path: "/be-selector(/|$)(.*)"
           pathType: Prefix
           backend:
             service:
