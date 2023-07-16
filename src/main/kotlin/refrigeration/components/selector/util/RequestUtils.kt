@@ -42,6 +42,10 @@ fun getRefrigerationPower(input: Map<String, Any>): Double? {
     val number= input[ComponentsConfig.evaporatorPower]
     return getDouble(number)
 }
+fun getCondenserPower(input: Map<String, Any>): Double? {
+    val number= input[ComponentsConfig.condenserPower]
+    return getDouble(number)
+}
 
 fun getVolumeFlow(input: Map<String, Any>): Double? {
     val number= input[ComponentsConfig.volumeFlow]

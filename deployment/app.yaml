@@ -23,11 +23,11 @@ spec:
       serviceAccount: configmap-reader
       serviceAccountName: configmap-reader
       containers:
-      - image: bogmilos/be-components-selector:2.1.3
+      - image: bogmilos/be-components-selector:2.1.5
         imagePullPolicy: IfNotPresent
         name: be-components-selector
         ports:
-        - containerPort: 80
+        - containerPort: 8080
           protocol: TCP
         resources: {}
       - image: bogmilos/fluid-properties:2.0.5

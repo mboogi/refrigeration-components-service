@@ -69,9 +69,11 @@ class SingleStageCycle(private val evaluators: List<Evaluator>) : Evaluator {
             evaluators.filter { it.getName() == "ValveEvaluation" }.firstOrNull() ?: return Mono.empty()
         val pipesEvaluation =
             evaluators.filter { it.getName() == "Pipe Size Evaluation" }.firstOrNull() ?: return Mono.empty()
+        val copEvaluation=
+            evaluators.filter { it.getName() == "COPEvaluator" }.firstOrNull() ?: return Mono.empty()
 
-        val eval = compressorEvaluator
-            .evaluate(listOf(input)).next()
+        val eval =
+            compressorEvaluator.evaluate(listOf(input)).next()
             .map {
                 getInputForRequiredKeys(
                     combineInputAndResult(input, it, "compressor1", evaluationContext),
@@ -103,11 +105,18 @@ class SingleStageCycle(private val evaluators: List<Evaluator>) : Evaluator {
             .map {
                 getInputForRequiredKeys(
                     combineInputAndResult(input, it, "pipes", evaluationContext),
-                    pipesEvaluation.keyValuesAndTypes().map { et->et.key }.toSet()
+                    copEvaluation.keyValuesAndTypes().map { et->et.key }.toSet()
+                )
+            }
+            .flatMap { copEvaluation.evaluate(listOf(it)).next() }
+            .map {
+                getInputForRequiredKeys(
+                    combineInputAndResult(input, it, "coefficientOfPerformance", evaluationContext),
+                    copEvaluation.keyValuesAndTypes().map { et->et.key }.toSet()
                 )
             }
 
-        val contextEvalList = listOf("compressor1", "evaporator1", "condenser1","valves","pipes")
+        val contextEvalList = listOf("compressor1", "evaporator1", "condenser1","valves","pipes","coefficientOfPerformance")
 
         return eval.map {
             EvalResult(

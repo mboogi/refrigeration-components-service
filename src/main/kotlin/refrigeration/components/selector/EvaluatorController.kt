@@ -17,7 +17,7 @@ class EvaluatorController(private val evaluators: List<Evaluator>) : EvaluationA
         private val logger = LoggerFactory.getLogger(EvaluatorController::class.java)
     }
 
-    @CrossOrigin(origins = ["http://localhost:3000"])
+    @CrossOrigin(origins = ["http://localhost:3000", "evaluation-frontend.components-selector.svc.cluster.local"])
     @GetMapping("/names")
     @Operation(summary = "all evaluators are listed")
     override fun getAvailableEvaluators(): Flux<Any> {
@@ -25,7 +25,7 @@ class EvaluatorController(private val evaluators: List<Evaluator>) : EvaluationA
         return Flux.fromIterable(evaluators)
     }
 
-
+    @CrossOrigin(origins = ["http://localhost:3000", "evaluation-frontend.components-selector.svc.cluster.local"])
     @GetMapping("/{name}/form-values")
     @Operation(summary = "input values required for named evaluator")
     override fun getRequiredKeysForEvaluator(@PathVariable("name") evaluatorName: String): Map<String, String> {
@@ -34,7 +34,7 @@ class EvaluatorController(private val evaluators: List<Evaluator>) : EvaluationA
         val evaluator = evaluators.firstOrNull() ?: return emptyMap()
         return evaluator.keyValuesAndTypes()
     }
-
+    @CrossOrigin(origins = ["http://localhost:3000", "evaluation-frontend.components-selector.svc.cluster.local"])
     @PostMapping("/evaluation/{name}")
     @Operation(summary = "evaluation for named evaluator")
     override fun evaluate(

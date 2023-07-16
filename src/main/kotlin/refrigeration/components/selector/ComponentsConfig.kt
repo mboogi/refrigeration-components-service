@@ -43,5 +43,8 @@ class ComponentsConfig {
         const val enthalpyRealConditionsKey = "enthalpyRealConditions"
         const val endEnthalpyRealConditions = "endEnthalpyRealConditions"
         const val compressorOutletTemperature = "compressorOutletTemperature"
+
+        const val cop = "COP"
+        const val eer = "EER"
     }
 }
