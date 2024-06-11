@@ -1,0 +1,42 @@
+name: Build and test Pipeline
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+on: [push]
+jobs:
+  cache-containers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: mkdir -p ~/image-cache
+
+      - id: image-cache
+        uses: actions/cache@v1
+        with:
+          path: ~/image-cache
+          key: image-cache-${{ runner.os }}
+
+      - if: steps.image-cache.outputs.cache-hit != 'true'
+        run: |
+          docker pull postgres:15-alpine
+          docker save -o ~/image-cache/postgres.tar alpine
+
+      - if: steps.image-cache.outputs.cache-hit == 'true'
+        run: docker load -i ~/image-cache/postgres.tar
+  setup:
+    needs: cache-containers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Grant Gradle wrapper permissions
+        run: chmod +x gradlew
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+      - name: Run Gradle Integration Tests
+        run: ./gradlew build test
+      - name: Verify Test Coverage
+        run: ./gradlew jacocoTestCoverageVerification
