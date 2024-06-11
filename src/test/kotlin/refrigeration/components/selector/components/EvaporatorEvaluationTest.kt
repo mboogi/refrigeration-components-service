@@ -11,6 +11,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
 import refrigeration.components.selector.ComponentsConfig
+import refrigeration.components.selector.TestContainersSetup
 import refrigeration.components.selector.api.EvalResult
 import refrigeration.components.selector.api.EvalResultInfo
 import refrigeration.components.selector.api.EvaluationInput
@@ -20,7 +21,7 @@ import refrigeration.components.selector.util.getDoubleValue
 @SpringBootTest
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class EvaporatorEvaluationTest {
+class EvaporatorEvaluationTest :TestContainersSetup(){
     @MockBean
     private lateinit var fluidApi: FluidPropertyService
     @Autowired
