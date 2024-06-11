@@ -9,13 +9,14 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper
 import reactor.test.StepVerifier
 import refrigeration.components.selector.ComponentsConfig
+import refrigeration.components.selector.TestContainersSetup
 import refrigeration.components.selector.api.EvalResult
 import refrigeration.components.selector.api.EvalResultInfo
 import refrigeration.components.selector.api.EvaluationInput
 import refrigeration.components.selector.api.ResultValues
 
 @SpringBootTest
-class CondenserEvaluationTest {
+class CondenserEvaluationTest:TestContainersSetup() {
 
      var mapper:ObjectMapper=ObjectMapper()
     @Autowired
